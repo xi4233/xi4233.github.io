@@ -1191,6 +1191,71 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
+        .about-header {
+            text-align: center;
+            padding: 40px 20px;
+            margin-bottom: 20px;
+        }
+
+        .about-logo {
+            margin-bottom: 16px;
+        }
+
+        .about-logo svg {
+            width: 80px;
+            height: 80px;
+            fill: var(--accent-color, #3b82f6);
+        }
+
+        .about-title {
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .about-version {
+            font-size: 16px;
+            color: var(--text-secondary);
+        }
+
+        .about-section {
+            margin-bottom: 24px;
+        }
+
+        .about-section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+            padding-left: 4px;
+        }
+
+        .about-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .about-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .about-item-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .about-item-value {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
         .slider-value {
             min-width: 45px;
             text-align: right;
@@ -1212,6 +1277,48 @@
 
         .settings-select option {
             background: #1a1a1a;
+        }
+
+        .settings-number-input {
+            width: 80px;
+            padding: 8px 12px;
+            background: rgba(40, 40, 40, 0.8);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .settings-number-input:focus {
+            outline: none;
+            border-color: var(--accent-color, #3b82f6);
+        }
+
+        .datetime-picker-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .datetime-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .datetime-row label {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .datetime-input {
+            width: 100px;
+        }
+
+        .datetime-select {
+            width: 120px;
         }
 
         .office-container {
@@ -1724,17 +1831,137 @@
         let resizeState = null;
         let isLocked = true;
 
-        function updateClock() {
-            const now = new Date();
-            document.getElementById('time').textContent = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-            document.getElementById('date').textContent = now.toLocaleDateString('zh-CN', { year: 'numeric', month: 'numeric', day: 'numeric' });
+        const timeSettings = {
+            autoTime: true,
+            timezone: 'Asia/Shanghai',
+            year: 2024,
+            month: 1,
+            day: 1,
+            hour: 12,
+            minute: 0,
+            use12Hour: false
+        };
+
+        function getTimezoneOffset(timezone) {
+            const offsets = {
+                'Asia/Shanghai': 8,
+                'Asia/Tokyo': 9,
+                'America/New_York': -5,
+                'UTC': 0
+            };
+            return offsets[timezone] || 8;
+        }
+
+        function fetchNetworkTime() {
+            const timezoneMap = {
+                'Asia/Shanghai': 'Asia/Shanghai',
+                'Asia/Tokyo': 'Asia/Tokyo',
+                'America/New_York': 'America/New_York',
+                'UTC': 'Etc/UTC'
+            };
+            const tz = timezoneMap[timeSettings.timezone] || 'Asia/Shanghai';
             
-            if (document.getElementById('lockTime')) {
-                document.getElementById('lockTime').textContent = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-                document.getElementById('lockDate').textContent = now.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' });
+            fetch('https://worldtimeapi.org/api/timezone/' + tz)
+                .then(response => response.json())
+                .then(data => {
+                    const serverTime = new Date(data.datetime);
+                    timeSettings.year = serverTime.getFullYear();
+                    timeSettings.month = serverTime.getMonth() + 1;
+                    timeSettings.day = serverTime.getDate();
+                    timeSettings.hour = serverTime.getHours();
+                    timeSettings.minute = serverTime.getMinutes();
+                    updateTimeDisplay();
+                })
+                .catch(err => {
+                    console.log('Failed to fetch network time, using local time');
+                    const now = new Date();
+                    const offset = getTimezoneOffset(timeSettings.timezone);
+                    now.setHours(now.getUTCHours() + offset);
+                    timeSettings.year = now.getFullYear();
+                    timeSettings.month = now.getMonth() + 1;
+                    timeSettings.day = now.getDate();
+                    timeSettings.hour = now.getHours();
+                    timeSettings.minute = now.getMinutes();
+                    updateTimeDisplay();
+                });
+        }
+
+        function updateTimeDisplay() {
+            let displayDate;
+            
+            if (timeSettings.autoTime) {
+                displayDate = new Date();
+                const offset = getTimezoneOffset(timeSettings.timezone);
+                displayDate.setHours(displayDate.getUTCHours() + offset);
+            } else {
+                displayDate = new Date(
+                    timeSettings.year,
+                    timeSettings.month - 1,
+                    timeSettings.day,
+                    timeSettings.hour,
+                    timeSettings.minute
+                );
+                const offset = getTimezoneOffset(timeSettings.timezone);
+                displayDate.setHours(displayDate.getHours() + offset);
+            }
+            
+            let timeStr;
+            if (timeSettings.use12Hour) {
+                const hours = displayDate.getHours();
+                const minutes = displayDate.getMinutes();
+                const ampm = hours >= 12 ? '下午' : '上午';
+                const displayHours = hours % 12 || 12;
+                timeStr = `${ampm} ${displayHours}:${minutes.toString().padStart(2, '0')}`;
+            } else {
+                timeStr = displayDate.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false });
+            }
+            
+            const dateStr = displayDate.toLocaleDateString('zh-CN', { year: 'numeric', month: 'numeric', day: 'numeric' });
+            
+            const timeEl = document.getElementById('time');
+            const dateEl = document.getElementById('date');
+            const lockTimeEl = document.getElementById('lockTime');
+            const lockDateEl = document.getElementById('lockDate');
+            
+            if (timeEl) timeEl.textContent = timeStr;
+            if (dateEl) dateEl.textContent = dateStr;
+            if (lockTimeEl) lockTimeEl.textContent = timeStr;
+            if (lockDateEl) lockDateEl.textContent = dateStr;
+        }
+
+        function updateClock() {
+            if (timeSettings.autoTime) {
+                const now = new Date();
+                const offset = getTimezoneOffset(timeSettings.timezone);
+                now.setHours(now.getUTCHours() + offset);
+                
+                let timeStr;
+                if (timeSettings.use12Hour) {
+                    const hours = now.getHours();
+                    const minutes = now.getMinutes();
+                    const ampm = hours >= 12 ? '下午' : '上午';
+                    const displayHours = hours % 12 || 12;
+                    timeStr = `${ampm} ${displayHours}:${minutes.toString().padStart(2, '0')}`;
+                } else {
+                    timeStr = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false });
+                }
+                
+                const dateStr = now.toLocaleDateString('zh-CN', { year: 'numeric', month: 'numeric', day: 'numeric' });
+                
+                const timeEl = document.getElementById('time');
+                const dateEl = document.getElementById('date');
+                const lockTimeEl = document.getElementById('lockTime');
+                const lockDateEl = document.getElementById('lockDate');
+                
+                if (timeEl) timeEl.textContent = timeStr;
+                if (dateEl) dateEl.textContent = dateStr;
+                if (lockTimeEl) lockTimeEl.textContent = timeStr;
+                if (lockDateEl) lockDateEl.textContent = dateStr;
+            } else {
+                updateTimeDisplay();
             }
         }
-        
+
         function unlockScreen() {
             if (!isLocked) return;
             isLocked = false;
@@ -1753,6 +1980,7 @@
         });
         
         updateClock();
+        fetchNetworkTime();
         setInterval(updateClock, 1000);
 
         function createWindow(appId) {
@@ -2219,23 +2447,34 @@
                         }
                     };
                     
-                    const timeSettings = {
-                        autoTime: true,
-                        timezone: 'UTC+8'
-                    };
+                    function getDateTimeItems() {
+                        if (timeSettings.autoTime) {
+                            return [
+                                { type: 'toggle', id: 'autoTime', title: '自动设置时间', desc: '自动从网络获取时间', value: timeSettings.autoTime },
+                                { type: 'select', id: 'timezone', title: '时区', desc: '选择时区', options: [
+                                    { value: 'Asia/Shanghai', label: '中国 (北京)' },
+                                    { value: 'Asia/Tokyo', label: '日本 (东京)' },
+                                    { value: 'America/New_York', label: '美国 (纽约)' },
+                                    { value: 'UTC', label: 'UTC' }
+                                ], value: timeSettings.timezone },
+                                { type: 'select', id: 'use12Hour', title: '时间格式', desc: '选择时间显示格式', options: [
+                                    { value: 'false', label: '24小时制' },
+                                    { value: 'true', label: '12小时制 (上午/下午)' }
+                                ], value: String(timeSettings.use12Hour) }
+                            ];
+                        } else {
+                            return [
+                                { type: 'toggle', id: 'autoTime', title: '自动设置时间', desc: '自动从网络获取时间', value: timeSettings.autoTime },
+                                { type: 'datetime-picker', id: 'manualDateTime', title: '手动设置时间', desc: '设置日期和时间', value: '' }
+                            ];
+                        }
+                    }
                     
                     const timeSubPages = {
                         'datetime': {
                             title: '日期和时间',
                             icon: 'svg-clock',
-                            items: [
-                                { type: 'toggle', id: 'autoTime', title: '自动设置时间', desc: '自动从网络获取时间', value: timeSettings.autoTime },
-                                { type: 'select', id: 'timezone', title: '时区', desc: '选择时区', options: [
-                                    { value: 'UTC+8', label: '中国标准时间 (UTC+8)' },
-                                    { value: 'UTC+9', label: '日本标准时间 (UTC+9)' },
-                                    { value: 'UTC', label: '世界协调时间 (UTC)' }
-                                ], value: timeSettings.timezone }
-                            ]
+                            getItems: getDateTimeItems
                         },
                         'language': {
                             title: '语言',
@@ -2354,7 +2593,7 @@
                                 </div>
                                 <div class="settings-item" data-page="info">
                                     <svg width="20" height="20" viewBox="0 0 40 40"><use href="#svg-system"/></svg>
-                                    <span>系统信息</span>
+                                    <span>关于</span>
                                 </div>
                             </div>
                             <div class="settings-main" id="settingsMain"></div>
@@ -2403,9 +2642,10 @@
                         currentSubPage = subpageId;
                         const subPage = subPages[subpageId];
                         const mainEl = contentEl.querySelector('#settingsMain');
+                        const items = subPage.getItems ? subPage.getItems() : subPage.items;
                         
                         let itemsHtml = '';
-                        subPage.items.forEach((item, index) => {
+                        items.forEach((item, index) => {
                             if (item.type === 'slider') {
                                 itemsHtml += `
                                     <div class="settings-card">
@@ -2438,6 +2678,16 @@
                                         <select class="settings-select" id="setting-${item.id}">
                                             ${optionsHtml}
                                         </select>
+                                    </div>
+                                `;
+                            } else if (item.type === 'number') {
+                                itemsHtml += `
+                                    <div class="settings-card" style="display:flex;justify-content:space-between;align-items:center">
+                                        <div>
+                                            <div class="settings-card-title">${item.title}</div>
+                                            <div class="settings-card-desc">${item.desc}</div>
+                                        </div>
+                                        <input type="number" class="settings-number-input" id="setting-${item.id}" min="${item.min}" max="${item.max}" value="${item.value}">
                                     </div>
                                 `;
                             } else if (item.type === 'wallpaper') {
@@ -2506,6 +2756,44 @@
                                         <div class="settings-card-desc">${item.desc}</div>
                                         <div class="battery-indicator" style="margin-top:8px">
                                             <div class="battery-level" style="width: ${item.value}"></div>
+                                        </div>
+                                    </div>
+                                `;
+                            } else if (item.type === 'datetime-picker') {
+                                const daysInMonth = new Date(timeSettings.year, timeSettings.month, 0).getDate();
+                                itemsHtml += `
+                                    <div class="settings-card">
+                                        <div class="settings-card-title">${item.title}</div>
+                                        <div class="settings-card-desc">${item.desc}</div>
+                                        <div class="datetime-picker-container">
+                                            <div class="datetime-row">
+                                                <label>年份</label>
+                                                <input type="number" class="settings-number-input datetime-input" id="setting-year" min="2000" max="2100" value="${timeSettings.year}">
+                                            </div>
+                                            <div class="datetime-row">
+                                                <label>月份</label>
+                                                <select class="settings-select datetime-select" id="setting-month">
+                                                    ${[1,2,3,4,5,6,7,8,9,10,11,12].map(m => `<option value="${m}" ${m === timeSettings.month ? 'selected' : ''}>${m} 月</option>`).join('')}
+                                                </select>
+                                            </div>
+                                            <div class="datetime-row">
+                                                <label>日期</label>
+                                                <select class="settings-select datetime-select" id="setting-day">
+                                                    ${Array.from({length: daysInMonth}, (_, i) => i + 1).map(d => `<option value="${d}" ${d === timeSettings.day ? 'selected' : ''}>${d} 日</option>`).join('')}
+                                                </select>
+                                            </div>
+                                            <div class="datetime-row">
+                                                <label>小时</label>
+                                                <select class="settings-select datetime-select" id="setting-hour">
+                                                    ${Array.from({length: 24}, (_, i) => i).map(h => `<option value="${h}" ${h === timeSettings.hour ? 'selected' : ''}>${h.toString().padStart(2, '0')}</option>`).join('')}
+                                                </select>
+                                            </div>
+                                            <div class="datetime-row">
+                                                <label>分钟</label>
+                                                <select class="settings-select datetime-select" id="setting-minute">
+                                                    ${Array.from({length: 60}, (_, i) => i).map(m => `<option value="${m}" ${m === timeSettings.minute ? 'selected' : ''}>${m.toString().padStart(2, '0')}</option>`).join('')}
+                                                </select>
+                                            </div>
                                         </div>
                                     </div>
                                 `;
@@ -2603,7 +2891,8 @@
                         mainEl.querySelectorAll('.toggle-switch').forEach(toggle => {
                             toggle.addEventListener('click', () => {
                                 const settingId = toggle.id.replace('setting-', '');
-                                systemSettings[settingId] = !systemSettings[settingId];
+                                const settingsObj = currentSettingsPage === 'time' ? timeSettings : systemSettings;
+                                settingsObj[settingId] = !settingsObj[settingId];
                                 toggle.classList.toggle('on');
                                 
                                 if (settingId === 'nightLight') {
@@ -2669,13 +2958,22 @@
                                         }
                                     }
                                 }
+                                
+                                if (settingId === 'autoTime' && currentSettingsPage === 'time') {
+                                    if (timeSettings.autoTime) {
+                                        fetchNetworkTime();
+                                    }
+                                    renderSubPage('datetime', 'forward', timeSubPages);
+                                    updateClock();
+                                }
                             });
                         });
                         
                         mainEl.querySelectorAll('.settings-select').forEach(select => {
                             select.addEventListener('change', (e) => {
                                 const settingId = e.target.id.replace('setting-', '');
-                                systemSettings[settingId] = e.target.value;
+                                const settingsObj = currentSettingsPage === 'time' ? timeSettings : systemSettings;
+                                settingsObj[settingId] = e.target.value;
                                 
                                 if (settingId === 'scale') {
                                     const scale = parseInt(e.target.value) / 100;
@@ -2686,6 +2984,78 @@
                                         wallpaperBg.style.transformOrigin = 'center center';
                                     }
                                 }
+                                
+                                if (settingId === 'timezone' || settingId === 'use12Hour') {
+                                    if (settingId === 'use12Hour') {
+                                        timeSettings.use12Hour = e.target.value === 'true';
+                                    }
+                                    updateTimeDisplay();
+                                }
+                            });
+                        });
+                        
+                        mainEl.querySelectorAll('.settings-number-input').forEach(input => {
+                            input.addEventListener('change', (e) => {
+                                const settingId = e.target.id.replace('setting-', '');
+                                const newValue = parseInt(e.target.value);
+                                const min = parseInt(e.target.min);
+                                const max = parseInt(e.target.max);
+                                
+                                if (newValue >= min && newValue <= max) {
+                                    timeSettings[settingId] = newValue;
+                                    updateTimeDisplay();
+                                }
+                            });
+                        });
+                        
+                        mainEl.querySelectorAll('.settings-number-input').forEach(input => {
+                            input.addEventListener('change', (e) => {
+                                const settingId = e.target.id.replace('setting-', '');
+                                const newValue = parseInt(e.target.value);
+                                const min = parseInt(e.target.min);
+                                const max = parseInt(e.target.max);
+                                
+                                if (newValue >= min && newValue <= max) {
+                                    timeSettings[settingId] = newValue;
+                                    
+                                    if (settingId === 'year' || settingId === 'month') {
+                                        const daysInMonth = new Date(timeSettings.year, timeSettings.month, 0).getDate();
+                                        const daySelect = document.getElementById('setting-day');
+                                        if (daySelect) {
+                                            let currentDay = timeSettings.day;
+                                            if (currentDay > daysInMonth) {
+                                                currentDay = daysInMonth;
+                                                timeSettings.day = currentDay;
+                                            }
+                                            daySelect.innerHTML = Array.from({length: daysInMonth}, (_, i) => i + 1)
+                                                .map(d => `<option value="${d}" ${d === currentDay ? 'selected' : ''}>${d} 日</option>`).join('');
+                                        }
+                                    }
+                                    updateTimeDisplay();
+                                }
+                            });
+                        });
+                        
+                        mainEl.querySelectorAll('.datetime-select').forEach(select => {
+                            select.addEventListener('change', (e) => {
+                                const settingId = e.target.id.replace('setting-', '');
+                                const newValue = parseInt(e.target.value);
+                                timeSettings[settingId] = newValue;
+                                
+                                if (settingId === 'month') {
+                                    const daysInMonth = new Date(timeSettings.year, timeSettings.month, 0).getDate();
+                                    const daySelect = document.getElementById('setting-day');
+                                    if (daySelect) {
+                                        let currentDay = timeSettings.day;
+                                        if (currentDay > daysInMonth) {
+                                            currentDay = daysInMonth;
+                                            timeSettings.day = currentDay;
+                                        }
+                                        daySelect.innerHTML = Array.from({length: daysInMonth}, (_, i) => i + 1)
+                                            .map(d => `<option value="${d}" ${d === currentDay ? 'selected' : ''}>${d} 日</option>`).join('');
+                                    }
+                                }
+                                updateTimeDisplay();
                             });
                         });
                         
@@ -2934,23 +3304,41 @@
                     const renderInfoPage = () => {
                         const mainEl = contentEl.querySelector('#settingsMain');
                         mainEl.innerHTML = `
-                            <div class="settings-title">系统信息</div>
-                            <div class="settings-section">
-                                <div class="settings-card">
-                                    <div class="settings-card-title">设备名称</div>
-                                    <div class="settings-card-desc">DESKTOP-XXXXX</div>
+                            <div class="about-header">
+                                <div class="about-logo">
+                                    <svg width="80" height="80" viewBox="0 0 40 40"><use href="#svg-windows"/></svg>
                                 </div>
-                                <div class="settings-card">
-                                    <div class="settings-card-title">处理器</div>
-                                    <div class="settings-card-desc">Intel(R) Core(TM) i5-10400F</div>
+                                <div class="about-title">喜PCOS</div>
+                                <div class="about-version">版本 1.0.0</div>
+                            </div>
+                            <div class="about-section">
+                                <div class="about-section-title">设备信息</div>
+                                <div class="about-grid">
+                                    <div class="about-item">
+                                        <div class="about-item-label">设备名称</div>
+                                        <div class="about-item-value">DESKTOP-XXXXX</div>
+                                    </div>
+                                    <div class="about-item">
+                                        <div class="about-item-label">处理器</div>
+                                        <div class="about-item-value">Intel(R) Core(TM) i5-10400F</div>
+                                    </div>
+                                    <div class="about-item">
+                                        <div class="about-item-label">内存</div>
+                                        <div class="about-item-value">16.0 GB</div>
+                                    </div>
                                 </div>
-                                <div class="settings-card">
-                                    <div class="settings-card-title">RAM</div>
-                                    <div class="settings-card-desc">16.0 GB</div>
-                                </div>
-                                <div class="settings-card">
-                                    <div class="settings-card-title">版本</div>
-                                    <div class="settings-card-desc">喜PCOS 1.0.0</div>
+                            </div>
+                            <div class="about-section">
+                                <div class="about-section-title">系统信息</div>
+                                <div class="about-grid">
+                                    <div class="about-item">
+                                        <div class="about-item-label">系统版本</div>
+                                        <div class="about-item-value">喜PCOS 1.0.0</div>
+                                    </div>
+                                    <div class="about-item">
+                                        <div class="about-item-label">系统类型</div>
+                                        <div class="about-item-value">64 位操作系统</div>
+                                    </div>
                                 </div>
                             </div>
                         `;
