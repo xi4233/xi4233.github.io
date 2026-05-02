@@ -1,0 +1,3233 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>喜PCOS1.0.0</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            user-select: none;
+        }
+
+        :root {
+            --glass-bg: rgba(30, 30, 30, 0.3);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            --accent: #60a5fa;
+            --accent-color: #3b82f6;
+            --hover-bg: rgba(255, 255, 255, 0.1);
+            --taskbar-bg: transparent;
+            --text-color: #ffffff;
+            --text-secondary: #9ca3af;
+            --bg-dark: #1a1a1a;
+            --bg-darker: #121212;
+        }
+
+        body {
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            color: var(--text-color);
+            background: #000;
+        }
+
+        * {
+            color: var(--text-color);
+        }
+
+        #wallpaper-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: url('https://images.unsplash.com/photo-1495616811223-4d98c6e9c869?w=1920&q=80') center/cover no-repeat;
+            z-index: 0;
+            transform-origin: center center;
+            transition: transform 0.3s ease;
+        }
+
+        .wallpaper-preview-container {
+            margin: 16px 0;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+
+        .wallpaper-preview-label {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 10px;
+        }
+
+        .wallpaper-preview-large {
+            width: 100%;
+            height: 160px;
+            border-radius: 8px;
+            background-size: cover;
+            background-position: center;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .wallpaper-thumbnails {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .wallpaper-thumbnail {
+            width: 80px;
+            height: 50px;
+            border-radius: 6px;
+            background-size: cover;
+            background-position: center;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s ease;
+            opacity: 0.7;
+        }
+
+        .wallpaper-thumbnail:hover {
+            opacity: 1;
+            transform: scale(1.05);
+        }
+
+        .wallpaper-thumbnail.active {
+            border-color: #3b82f6;
+            opacity: 1;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+        }
+
+        .wallpaper-import-btn {
+            display: inline-block;
+            width: 80px;
+            height: 50px;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #888;
+            font-size: 24px;
+            transition: all 0.2s ease;
+        }
+
+        .wallpaper-import-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: #3b82f6;
+            color: #3b82f6;
+        }
+
+        .accent-color-container {
+            margin: 16px 0;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+
+        .accent-color-label {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 12px;
+        }
+
+        .accent-color-palette {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .accent-color-option {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .accent-color-option:hover {
+            transform: scale(1.15);
+        }
+
+        .accent-color-option.active {
+            border-color: #fff;
+            box-shadow: 0 0 12px rgba(255, 255, 255, 0.5);
+            transform: scale(1.1);
+        }
+
+        #desktop {
+            width: 100%;
+            height: 100vh;
+            position: absolute;
+            top: 0;
+            left: 0;
+            padding: 12px;
+            z-index: 1;
+        }
+
+        #brightness-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            pointer-events: none;
+            z-index: 9998;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        #lock-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('https://images.unsplash.com/photo-1495616811223-4d98c6e9c869?w=1920&q=80') center/cover no-repeat;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            backdrop-filter: blur(30px) saturate(180%) brightness(1.1);
+            -webkit-backdrop-filter: blur(30px) saturate(180%) brightness(1.1);
+        }
+
+        #lock-screen.hidden {
+            animation: lockScreenFadeOut 0.5s ease forwards;
+            pointer-events: none;
+        }
+
+        @keyframes lockScreenFadeOut {
+            0% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+            }
+        }
+
+        .lock-datetime {
+            margin-top: 80px;
+            text-align: center;
+        }
+
+        .lock-time {
+            font-size: 96px;
+            font-weight: 100;
+            color: white;
+            text-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+            letter-spacing: 4px;
+            margin-bottom: 10px;
+            font-family: 'Segoe UI Light', 'Microsoft YaHei Light', sans-serif;
+        }
+
+        .lock-date {
+            font-size: 24px;
+            font-weight: 400;
+            color: rgba(255, 255, 255, 0.9);
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .lock-hint {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.6);
+            animation: pulse 2s ease-in-out infinite;
+            margin-bottom: 60px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        #selection-box {
+            position: absolute;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            background: rgba(0, 120, 212, 0.2);
+            pointer-events: none;
+            display: none;
+            z-index: 999;
+        }
+
+        .desktop-icons {
+            display: flex;
+            flex-direction: column;
+            flex-wrap: wrap;
+            height: calc(100vh - 80px);
+            gap: 8px;
+            align-content: flex-start;
+        }
+
+        .desktop-icon {
+            width: 76px;
+            height: 82px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.15s;
+            gap: 4px;
+        }
+
+        .desktop-icon.refreshing {
+            animation: iconRefresh 0.3s ease;
+        }
+
+        @keyframes iconRefresh {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.9); background: rgba(255, 255, 255, 0.3); }
+            100% { transform: scale(1); }
+        }
+
+        .desktop-icon:hover {
+            background: var(--hover-bg);
+        }
+
+        .desktop-icon.selected {
+            background: rgba(0, 120, 212, 0.3);
+        }
+
+        .desktop-icon img, .desktop-icon svg {
+            width: 40px;
+            height: 40px;
+        }
+
+        .desktop-icon span {
+            color: white;
+            font-size: 11px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+            max-width: 70px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        #taskbar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 48px;
+            background: transparent;
+            backdrop-filter: blur(30px) saturate(180%) brightness(1.1);
+            -webkit-backdrop-filter: blur(30px) saturate(180%) brightness(1.1);
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            z-index: 1000;
+        }
+
+        .start-button {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.15s;
+            margin-right: 8px;
+        }
+
+        .start-button:hover {
+            background: var(--hover-bg);
+        }
+
+        .start-button img {
+            width: 24px;
+            height: 24px;
+        }
+
+        .taskbar-items {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex: 1;
+        }
+
+        .taskbar-item {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.15s;
+            position: relative;
+        }
+
+        .taskbar-item:hover {
+            background: var(--hover-bg);
+        }
+
+        .taskbar-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6px;
+            height: 3px;
+            background: var(--accent);
+            border-radius: 2px;
+        }
+
+        .taskbar-item img {
+            width: 24px;
+            height: 24px;
+        }
+
+        .taskbar-right {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .system-tray {
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.15s;
+        }
+
+        .system-tray:hover {
+            background: var(--hover-bg);
+        }
+
+        .window {
+            position: absolute;
+            background: transparent;
+            backdrop-filter: blur(30px) saturate(180%) brightness(1.1);
+            -webkit-backdrop-filter: blur(30px) saturate(180%) brightness(1.1);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--glass-border);
+            min-width: 400px;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            resize: both;
+            min-width: 300px;
+            min-height: 200px;
+            animation: windowOpen 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transform-origin: center center;
+        }
+
+        @keyframes windowOpen {
+            0% {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes windowClose {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+        }
+
+        .window.closing {
+            animation: windowClose 0.15s ease-in forwards;
+        }
+
+        @keyframes windowMinimize {
+            0% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.15, 0.08) translateY(calc(100vh - 32px - 50%));
+            }
+        }
+
+        .window.minimizing {
+            animation: windowMinimize 0.25s ease-in forwards;
+            pointer-events: none;
+        }
+
+        .window.maximized {
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: calc(100vh - 48px) !important;
+            border-radius: 0;
+        }
+
+        .window-header {
+            height: 32px;
+            background: transparent;
+            backdrop-filter: blur(30px) saturate(180%) brightness(1.1);
+            -webkit-backdrop-filter: blur(30px) saturate(180%) brightness(1.1);
+            display: flex;
+            align-items: center;
+            padding: 0 8px;
+            cursor: move;
+            flex-shrink: 0;
+        }
+
+        .window-title {
+            flex: 1;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .window-title img {
+            width: 16px;
+            height: 16px;
+        }
+
+        .window-controls {
+            display: flex;
+            margin-right: -8px;
+        }
+
+        .window-control {
+            width: 46px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.15s;
+            color: #ffffff;
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+        }
+
+        .window-control.maximize:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .window-control.minimize:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .window-control.close:hover {
+            background: #e81123;
+            color: white;
+        }
+
+        .window-content {
+            flex: 1;
+            overflow: auto;
+            background: transparent;
+            backdrop-filter: blur(30px) saturate(180%) brightness(1.1);
+            -webkit-backdrop-filter: blur(30px) saturate(180%) brightness(1.1);
+            pointer-events: auto;
+        }
+
+        .context-menu {
+            position: absolute;
+            background: var(--glass-bg);
+            backdrop-filter: blur(30px) saturate(180%) brightness(1.1);
+            -webkit-backdrop-filter: blur(30px) saturate(180%) brightness(1.1);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--glass-border);
+            padding: 4px;
+            min-width: 200px;
+            z-index: 2000;
+            display: none;
+        }
+
+        .context-menu-item {
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: background 0.15s;
+        }
+
+        .context-menu-item:hover {
+            background: var(--hover-bg);
+        }
+
+        .context-menu-divider {
+            height: 1px;
+            background: var(--glass-border);
+            margin: 4px 0;
+        }
+
+        .this-pc-view {
+            padding: 20px;
+        }
+
+        .this-pc-header {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--accent);
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: background 0.15s;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .drive-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 16px;
+        }
+
+        .drive-item {
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .drive-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .drive-item img {
+            width: 48px;
+            height: 48px;
+        }
+
+        .drive-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .drive-name {
+            font-weight: 500;
+            font-size: 14px;
+            color: #fff;
+        }
+
+        .drive-size {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .drive-bar {
+            width: 100%;
+            height: 6px;
+            background: #444;
+            border-radius: 3px;
+            margin-top: 6px;
+            overflow: hidden;
+        }
+
+        .drive-bar-fill {
+            height: 100%;
+            background: var(--accent);
+            border-radius: 3px;
+        }
+
+        .file-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 16px;
+        }
+
+        .file-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .file-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .file-item span {
+            margin-top: 8px;
+            font-size: 13px;
+            text-align: center;
+            word-break: break-word;
+        }
+
+        .drive-item {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            gap: 12px;
+        }
+
+        .drive-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .drive-item svg {
+            flex-shrink: 0;
+        }
+
+        .drive-info {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .drive-name {
+            font-weight: 500;
+            font-size: 14px;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .drive-size {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .drive-bar {
+            width: 100%;
+            height: 6px;
+            background: #444;
+            border-radius: 3px;
+            margin-top: 6px;
+            overflow: hidden;
+        }
+
+        .drive-bar-fill {
+            height: 100%;
+            background: var(--accent);
+            border-radius: 3px;
+        }
+
+        .recycle-bin-content {
+            padding: 20px;
+        }
+
+        .recycle-bin-header {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+
+        .recycle-bin-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px;
+            color: #888;
+        }
+
+        .recycle-bin-empty img {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .browser-toolbar {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            background: rgba(30, 30, 30, 0.9);
+            gap: 8px;
+        }
+
+        .browser-nav-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.15s;
+            color: #fff;
+        }
+
+        .browser-nav-btn:hover {
+            background: var(--hover-bg);
+        }
+
+        .browser-url {
+            flex: 1;
+            height: 32px;
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 0 16px;
+            background: rgba(50, 50, 50, 0.8);
+            color: white;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .browser-url:focus {
+            border-color: var(--accent);
+        }
+
+        .browser-iframe {
+            flex: 1;
+            border: none;
+            background: #1a1a1a;
+        }
+
+        .settings-container {
+            display: flex;
+            height: 100%;
+            gap: 0;
+            pointer-events: auto;
+            position: relative;
+            z-index: 100;
+        }
+
+        .settings-sidebar {
+            width: 220px;
+            background: transparent;
+            backdrop-filter: blur(30px) saturate(180%) brightness(1.1);
+            -webkit-backdrop-filter: blur(30px) saturate(180%) brightness(1.1);
+            padding: 16px 12px;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            pointer-events: auto;
+            z-index: 2;
+        }
+
+        .settings-search {
+            width: 100%;
+            height: 36px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            padding: 0 12px;
+            background: rgba(30, 30, 30, 0.6);
+            color: white;
+            margin-bottom: 16px;
+            font-size: 13px;
+        }
+
+        .settings-item {
+            padding: 10px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #ddd;
+            font-size: 13px;
+            margin-bottom: 4px;
+            transition: all 0.15s;
+        }
+
+        .settings-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .settings-item.active {
+            background: rgba(59, 130, 246, 0.3);
+            color: white;
+        }
+
+        .settings-item svg {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+
+        .settings-main {
+            flex: 1;
+            padding: 24px 32px;
+            overflow-y: auto;
+            background: transparent;
+            backdrop-filter: blur(30px) saturate(180%) brightness(1.1);
+            -webkit-backdrop-filter: blur(30px) saturate(180%) brightness(1.1);
+            pointer-events: auto;
+            z-index: 1;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        .settings-main::-webkit-scrollbar {
+            width: 0px;
+        }
+
+        .settings-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            color: white;
+        }
+
+        .settings-section {
+            margin-bottom: 24px;
+        }
+
+        .settings-section-title {
+            font-size: 14px;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+            transition: background 0.15s;
+        }
+
+        .settings-item:hover {
+            background: var(--hover-bg);
+        }
+
+        .settings-item.active {
+            background: rgba(0, 120, 212, 0.2);
+        }
+
+        .settings-item img {
+            width: 20px;
+            height: 20px;
+        }
+
+        .settings-main {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            background: transparent;
+            backdrop-filter: blur(30px) saturate(180%) brightness(1.1);
+            -webkit-backdrop-filter: blur(30px) saturate(180%) brightness(1.1);
+        }
+
+        .settings-title {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+
+        .settings-section {
+            margin-bottom: 32px;
+        }
+
+        .settings-section-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #aaa;
+        }
+
+        .settings-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin-bottom: 12px;
+            min-height: 90px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.15s;
+        }
+
+        .settings-card:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .settings-menu-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 18px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            pointer-events: auto;
+            transition: all 0.15s;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .settings-menu-item:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .wifi-networks-section {
+            margin-top: 8px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+
+        .wifi-networks-title {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 12px;
+            padding-left: 4px;
+        }
+
+        .wifi-network-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .wifi-network-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .wifi-network-name {
+            flex: 1;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .wifi-network-signal {
+            color: #888;
+            font-size: 12px;
+            margin-right: 12px;
+        }
+
+        .wifi-connected-tag {
+            background: #4ade80;
+            color: #000;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+            margin-left: 6px;
+        }
+
+        .wifi-connecting {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border: 2px solid #fff;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: wifi-spin 1s linear infinite;
+            margin-left: 6px;
+        }
+
+        @keyframes wifi-spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .settings-menu-item span {
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .menu-arrow {
+            color: #888;
+            font-size: 18px;
+        }
+
+        .settings-subpage-header {
+            margin-bottom: 20px;
+            animation: slideIn 0.25s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+        }
+
+        @keyframes cardFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .settings-card-title {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+
+        .settings-card-desc {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .toggle-switch {
+            width: 44px;
+            height: 24px;
+            background: rgba(100, 100, 100, 0.5);
+            border-radius: 12px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+
+        .toggle-switch.on {
+            background: var(--accent-color, #3b82f6);
+            transition: background 0.3s ease;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            background: white;
+            border-radius: 50%;
+            top: 3px;
+            left: 3px;
+            transition: transform 0.2s;
+        }
+
+        .toggle-switch.on::after {
+            transform: translateX(20px);
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .settings-slider {
+            flex: 1;
+            height: 6px;
+            -webkit-appearance: none;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .settings-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #3b82f6;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .slider-value {
+            min-width: 45px;
+            text-align: right;
+            color: #aaa;
+            font-size: 13px;
+        }
+
+        .settings-select {
+            width: 100%;
+            padding: 10px 12px;
+            margin-top: 12px;
+            background: rgba(40, 40, 40, 0.8);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .settings-select option {
+            background: #1a1a1a;
+        }
+
+        .office-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            background: #1a1a1a;
+        }
+
+        .office-toolbar {
+            display: flex;
+            align-items: center;
+            padding: 8px 16px;
+            background: rgba(30, 30, 30, 0.9);
+            border-bottom: 1px solid var(--glass-border);
+            gap: 8px;
+        }
+
+        .office-btn {
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background 0.15s;
+            border: 1px solid var(--glass-border);
+            background: #333;
+            color: white;
+        }
+
+        .office-btn:hover {
+            background: var(--hover-bg);
+        }
+
+        .office-content {
+            flex: 1;
+            padding: 40px;
+            overflow: auto;
+            background: #1a1a1a;
+        }
+
+        .office-document {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .office-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #1a1a1a;
+            padding-bottom: 10px;
+        }
+
+        .office-text {
+            font-size: 14px;
+            line-height: 1.8;
+            color: #ddd;
+        }
+
+        .office-text p {
+            margin-bottom: 16px;
+        }
+
+        .start-menu {
+            position: absolute;
+            bottom: 56px;
+            left: 12px;
+            width: 600px;
+            height: 500px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(30px) saturate(180%) brightness(1.1);
+            -webkit-backdrop-filter: blur(30px) saturate(180%) brightness(1.1);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--glass-border);
+            display: none;
+            z-index: 1500;
+            overflow: hidden;
+        }
+
+        .start-menu.show {
+            display: block;
+            animation: slideUp 0.2s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .start-search {
+            margin: 16px;
+            height: 40px;
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 0 16px;
+            background: rgba(50, 50, 50, 0.8);
+            color: white;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .start-search:focus {
+            border-color: var(--accent);
+        }
+
+        .start-pinned {
+            padding: 0 16px 16px;
+        }
+
+        .start-pinned-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .start-apps-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+        }
+
+        .start-app {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 12px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .start-app:hover {
+            background: var(--hover-bg);
+        }
+
+        .start-app img {
+            width: 32px;
+            height: 32px;
+            margin-bottom: 6px;
+        }
+
+        .start-app span {
+            font-size: 11px;
+            text-align: center;
+        }
+
+        .clock {
+            font-size: 12px;
+            text-align: right;
+        }
+
+        .window.minimized {
+            display: none;
+        }
+
+        .resizer {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            right: 0;
+            bottom: 0;
+            cursor: se-resize;
+        }
+    </style>
+</head>
+<body>
+    <div id="brightness-overlay"></div>
+    <div id="lock-screen">
+        <div class="lock-datetime">
+            <div class="lock-time" id="lockTime">00:00</div>
+            <div class="lock-date" id="lockDate">2024年1月1日</div>
+        </div>
+        <div class="lock-hint">按回车键或点击任意位置解锁</div>
+    </div>
+    <svg style="display:none">
+        <symbol id="svg-this-pc" viewBox="0 0 40 40">
+            <rect x="4" y="8" width="32" height="22" rx="4" fill="#1e293b"/>
+            <rect x="8" y="12" width="24" height="14" rx="2" fill="#3b82f6"/>
+            <rect x="16" y="30" width="8" height="3" rx="1" fill="#64748b"/>
+            <rect x="10" y="30" width="4" height="3" rx="1" fill="#64748b"/>
+            <rect x="26" y="30" width="4" height="3" rx="1" fill="#64748b"/>
+        </symbol>
+        <symbol id="svg-folder" viewBox="0 0 40 40">
+            <rect x="4" y="10" width="32" height="24" rx="4" fill="#fbbf24"/>
+            <rect x="4" y="6" width="20" height="8" rx="3" fill="#fcd34d"/>
+        </symbol>
+        <symbol id="svg-file" viewBox="0 0 40 40">
+            <rect x="8" y="4" width="24" height="32" rx="3" fill="#e2e8f0"/>
+            <path d="M24 4 L24 14 L32 14" fill="none" stroke="#94a3b8" stroke-width="1.5"/>
+        </symbol>
+        <symbol id="svg-notepad" viewBox="0 0 40 40">
+            <rect x="8" y="4" width="24" height="32" rx="3" fill="#fbbf24"/>
+            <rect x="12" y="10" width="16" height="2" rx="1" fill="#b45309"/>
+            <rect x="12" y="15" width="16" height="2" rx="1" fill="#b45309"/>
+            <rect x="12" y="20" width="16" height="2" rx="1" fill="#b45309"/>
+            <rect x="12" y="25" width="12" height="2" rx="1" fill="#b45309"/>
+        </symbol>
+        <symbol id="svg-calc" viewBox="0 0 40 40">
+            <rect x="6" y="4" width="28" height="32" rx="4" fill="#1f2937"/>
+            <rect x="10" y="8" width="20" height="6" rx="2" fill="#374151"/>
+            <rect x="10" y="18" width="6" height="6" rx="2" fill="#374151"/>
+            <rect x="17" y="18" width="6" height="6" rx="2" fill="#374151"/>
+            <rect x="24" y="18" width="6" height="6" rx="2" fill="#374151"/>
+            <rect x="10" y="26" width="6" height="6" rx="2" fill="#374151"/>
+            <rect x="17" y="26" width="6" height="6" rx="2" fill="#374151"/>
+            <rect x="24" y="26" width="6" height="6" rx="2" fill="#ef4444"/>
+        </symbol>
+        <symbol id="svg-mspaint" viewBox="0 0 40 40">
+            <rect x="4" y="8" width="32" height="24" rx="4" fill="#8b5cf6"/>
+            <rect x="8" y="12" width="10" height="10" rx="2" fill="#fbbf24"/>
+            <circle cx="24" cy="22" r="6" fill="#10b981"/>
+        </symbol>
+        <symbol id="svg-cmd" viewBox="0 0 40 40">
+            <rect x="6" y="4" width="28" height="32" rx="4" fill="#171717"/>
+            <text x="10" y="24" fill="#22c55e" font-size="10" font-family="Consolas" font-weight="bold">C:\&gt;</text>
+        </symbol>
+        <symbol id="svg-taskmgr" viewBox="0 0 40 40">
+            <rect x="4" y="6" width="32" height="28" rx="4" fill="#ef4444"/>
+            <rect x="8" y="10" width="8" height="16" rx="1" fill="#fca5a5"/>
+            <rect x="18" y="10" width="8" height="8" rx="1" fill="#fca5a5"/>
+            <rect x="18" y="20" width="8" height="4" rx="1" fill="#fca5a5"/>
+        </symbol>
+        <symbol id="svg-regedit" viewBox="0 0 40 40">
+            <rect x="6" y="4" width="28" height="32" rx="4" fill="#3b82f6"/>
+            <path d="M14 14 L20 20 L14 26" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <circle cx="26" cy="14" r="4" fill="#fbbf24"/>
+        </symbol>
+        <symbol id="svg-recycle-bin" viewBox="0 0 40 40">
+            <rect x="8" y="10" width="24" height="24" rx="3" fill="#6b7280"/>
+            <rect x="6" y="6" width="28" height="6" rx="2" fill="#9ca3af"/>
+            <line x1="12" y1="16" x2="28" y2="16" stroke="#e5e7eb" stroke-width="2"/>
+            <line x1="12" y1="20" x2="28" y2="20" stroke="#e5e7eb" stroke-width="2"/>
+            <line x1="12" y1="24" x2="28" y2="24" stroke="#e5e7eb" stroke-width="2"/>
+        </symbol>
+        <symbol id="svg-browser" viewBox="0 0 40 40">
+            <rect x="4" y="8" width="32" height="24" rx="4" fill="#3b82f6"/>
+            <rect x="4" y="12" width="32" height="4" fill="#60a5fa"/>
+            <rect x="4" y="20" width="10" height="8" fill="#93c5fd"/>
+            <rect x="15" y="20" width="10" height="8" fill="#93c5fd"/>
+            <rect x="26" y="20" width="6" height="8" fill="#93c5fd"/>
+        </symbol>
+        <symbol id="svg-settings" viewBox="0 0 40 40">
+            <circle cx="20" cy="20" r="16" fill="#374151"/>
+            <circle cx="20" cy="20" r="10" fill="#4b5563"/>
+            <circle cx="20" cy="20" r="4" fill="#f59e0b"/>
+            <rect x="18" y="2" width="4" height="4" rx="1" fill="#f59e0b"/>
+            <rect x="18" y="34" width="4" height="4" rx="1" fill="#f59e0b"/>
+            <rect x="2" y="18" width="4" height="4" rx="1" fill="#f59e0b"/>
+            <rect x="34" y="18" width="4" height="4" rx="1" fill="#f59e0b"/>
+        </symbol>
+        <symbol id="svg-office" viewBox="0 0 40 40">
+            <rect x="6" y="4" width="28" height="32" rx="4" fill="#dc2626"/>
+            <rect x="10" y="8" width="20" height="4" rx="1" fill="white"/>
+            <rect x="10" y="14" width="20" height="3" rx="1" fill="#fca5a5"/>
+            <rect x="10" y="19" width="20" height="3" rx="1" fill="#fca5a5"/>
+            <rect x="10" y="24" width="14" height="3" rx="1" fill="#fca5a5"/>
+            <rect x="10" y="29" width="10" height="3" rx="1" fill="#fca5a5"/>
+        </symbol>
+        <symbol id="svg-windows" viewBox="0 0 40 40">
+            <rect x="4" y="4" width="15" height="15" rx="3" fill="#0078d4"/>
+            <rect x="21" y="4" width="15" height="15" rx="3" fill="#0078d4"/>
+            <rect x="4" y="21" width="15" height="15" rx="3" fill="#0078d4"/>
+            <rect x="21" y="21" width="15" height="15" rx="3" fill="#0078d4"/>
+        </symbol>
+        <symbol id="svg-hard-disk" viewBox="0 0 40 40">
+            <rect x="4" y="8" width="32" height="24" rx="4" fill="#475569"/>
+            <rect x="8" y="12" width="24" height="14" rx="2" fill="#3b82f6"/>
+            <circle cx="20" cy="19" r="3" fill="white"/>
+            <rect x="16" y="32" width="8" height="3" rx="1" fill="#64748b"/>
+        </symbol>
+        <symbol id="svg-dvd" viewBox="0 0 40 40">
+            <rect x="4" y="10" width="32" height="20" rx="3" fill="#475569"/>
+            <circle cx="20" cy="20" r="7" fill="#94a3b8"/>
+            <circle cx="20" cy="20" r="3" fill="#475569"/>
+        </symbol>
+        <symbol id="svg-wifi" viewBox="0 0 40 40">
+            <circle cx="20" cy="32" r="4" fill="#3b82f6"/>
+            <path d="M12 24 Q20 16 28 24" stroke="#3b82f6" stroke-width="3" fill="none" stroke-linecap="round"/>
+            <path d="M6 18 Q20 6 34 18" stroke="#3b82f6" stroke-width="3" fill="none" stroke-linecap="round"/>
+        </symbol>
+        <symbol id="svg-personalization" viewBox="0 0 40 40">
+            <circle cx="20" cy="20" r="16" fill="#ec4899"/>
+            <circle cx="20" cy="20" r="8" fill="#fbcfe8"/>
+            <circle cx="20" cy="10" r="3" fill="#fcd34d"/>
+        </symbol>
+        <symbol id="svg-theme" viewBox="0 0 40 40">
+            <rect x="4" y="8" width="32" height="24" rx="4" fill="#6366f1"/>
+            <circle cx="14" cy="20" r="4" fill="#fcd34d"/>
+            <circle cx="26" cy="20" r="4" fill="#fcd34d"/>
+            <rect x="12" y="30" width="16" height="2" rx="1" fill="#4f46e5"/>
+        </symbol>
+        <symbol id="svg-clock" viewBox="0 0 40 40">
+            <circle cx="20" cy="20" r="16" fill="#10b981"/>
+            <circle cx="20" cy="20" r="10" fill="#064e3b"/>
+            <rect x="18" y="12" width="4" height="8" rx="1" fill="white"/>
+            <rect x="18" y="18" width="6" height="4" rx="1" fill="white"/>
+        </symbol>
+        <symbol id="svg-game" viewBox="0 0 40 40">
+            <rect x="4" y="8" width="32" height="24" rx="4" fill="#ef4444"/>
+            <rect x="10" y="14" width="8" height="12" rx="2" fill="#1f2937"/>
+            <rect x="22" y="14" width="8" height="12" rx="2" fill="#1f2937"/>
+            <circle cx="14" cy="12" r="2" fill="#ef4444"/>
+            <circle cx="26" cy="12" r="2" fill="#ef4444"/>
+        </symbol>
+        <symbol id="svg-contrast" viewBox="0 0 40 40">
+            <circle cx="20" cy="20" r="16" fill="#6366f1"/>
+            <path d="M20 4 A16 16 0 0 1 20 36 Z" fill="#e0e7ff"/>
+        </symbol>
+        <symbol id="svg-shield" viewBox="0 0 40 40">
+            <path d="M20 4 L8 10 L8 18 C8 28 14 34 20 36 C26 34 32 28 32 18 L32 10 L20 4Z" fill="#22c55e"/>
+            <path d="M16 20 L18 22 L24 16" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        </symbol>
+        <symbol id="svg-store" viewBox="0 0 40 40">
+            <rect x="6" y="6" width="28" height="28" rx="4" fill="#0ea5e9"/>
+            <rect x="10" y="10" width="8" height="8" rx="1" fill="#bae6fd"/>
+            <rect x="22" y="10" width="8" height="8" rx="1" fill="#bae6fd"/>
+            <rect x="10" y="22" width="8" height="8" rx="1" fill="#bae6fd"/>
+            <rect x="22" y="22" width="8" height="8" rx="1" fill="#bae6fd"/>
+        </symbol>
+        <symbol id="svg-system" viewBox="0 0 40 40">
+            <rect x="4" y="8" width="32" height="24" rx="4" fill="#64748b"/>
+            <rect x="8" y="12" width="10" height="8" rx="2" fill="#3b82f6"/>
+            <rect x="22" y="12" width="10" height="8" rx="2" fill="#60a5fa"/>
+            <rect x="8" y="24" width="24" height="4" rx="2" fill="#94a3b8"/>
+        </symbol>
+        <symbol id="svg-display" viewBox="0 0 40 40">
+            <rect x="4" y="6" width="32" height="22" rx="3" fill="#475569"/>
+            <rect x="8" y="10" width="24" height="14" rx="2" fill="#3b82f6"/>
+            <rect x="16" y="28" width="8" height="2" rx="1" fill="#64748b"/>
+            <rect x="10" y="30" width="4" height="2" rx="1" fill="#64748b"/>
+            <rect x="26" y="30" width="4" height="2" rx="1" fill="#64748b"/>
+        </symbol>
+        <symbol id="svg-volume" viewBox="0 0 40 40">
+            <rect x="6" y="14" width="6" height="12" rx="2" fill="#3b82f6"/>
+            <path d="M16 14 Q22 20 16 26" stroke="#3b82f6" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path d="M20 10 Q28 20 20 30" stroke="#60a5fa" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        </symbol>
+        <symbol id="svg-bell" viewBox="0 0 40 40">
+            <path d="M20 6 L20 10" stroke="#f59e0b" stroke-width="2"/>
+            <path d="M12 10 C12 6 16 4 20 4 C24 4 28 6 28 10 L28 24 C28 30 24 32 20 32 C16 32 12 30 12 24 L12 10Z" fill="#f59e0b"/>
+            <circle cx="20" cy="26" r="2" fill="#78350f"/>
+        </symbol>
+        <symbol id="svg-battery" viewBox="0 0 40 40">
+            <rect x="6" y="12" width="24" height="16" rx="3" fill="#22c55e"/>
+            <rect x="8" y="15" width="14" height="10" rx="1" fill="#166534"/>
+            <rect x="32" y="16" width="4" height="8" rx="1" fill="#22c55e"/>
+        </symbol>
+        <symbol id="svg-power" viewBox="0 0 40 40">
+            <circle cx="20" cy="20" r="14" fill="#fee2e2"/>
+            <circle cx="20" cy="20" r="10" fill="#ef4444"/>
+            <path d="M20 12 L20 20 L26 20" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        </symbol>
+        <symbol id="svg-arrow-left" viewBox="0 0 40 40">
+            <rect x="6" y="10" width="28" height="20" rx="4" fill="#3b82f6"/>
+            <path d="M14 16 L10 20 L14 24" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        </symbol>
+        <symbol id="svg-map" viewBox="0 0 40 40">
+            <rect x="4" y="8" width="32" height="24" rx="4" fill="#10b981"/>
+            <path d="M12 12 L12 28 M20 8 L20 28 M28 14 L28 28" stroke="white" stroke-width="2"/>
+            <path d="M8 18 L12 18 M16 22 L20 22 M24 14 L28 14" stroke="white" stroke-width="1.5"/>
+        </symbol>
+        <symbol id="svg-camera" viewBox="0 0 40 40">
+            <rect x="6" y="10" width="28" height="20" rx="4" fill="#374151"/>
+            <circle cx="20" cy="20" r="7" fill="#1f2937"/>
+            <circle cx="20" cy="20" r="3" fill="#60a5fa"/>
+            <rect x="28" y="14" width="4" height="8" rx="1" fill="#6b7280"/>
+        </symbol>
+        <symbol id="svg-mic" viewBox="0 0 40 40">
+            <rect x="14" y="6" width="12" height="18" rx="6" fill="#ef4444"/>
+            <path d="M10 18 Q10 26 14 28 L26 28 Q30 26 30 18" stroke="#ef4444" stroke-width="3" fill="none"/>
+            <rect x="18" y="30" width="4" height="4" rx="1" fill="#ef4444"/>
+            <line x1="20" y1="8" x2="20" y2="4" stroke="#ef4444" stroke-width="2"/>
+        </symbol>
+    </svg>
+    <div id="wallpaper-bg"></div>
+    <div id="desktop">
+        <div id="selection-box"></div>
+        <div class="desktop-icons">
+            <div class="desktop-icon" data-app="this-pc">
+                <svg width="40" height="40" viewBox="0 0 40 40"><use href="#svg-this-pc"/></svg>
+                <span>此电脑</span>
+            </div>
+            <div class="desktop-icon" data-app="recycle-bin">
+                <svg width="40" height="40" viewBox="0 0 40 40"><use href="#svg-recycle-bin"/></svg>
+                <span>回收站</span>
+            </div>
+            <div class="desktop-icon" data-app="browser">
+                <svg width="40" height="40" viewBox="0 0 40 40"><use href="#svg-browser"/></svg>
+                <span>喜edge</span>
+            </div>
+            <div class="desktop-icon" data-app="settings">
+                <svg width="40" height="40" viewBox="0 0 40 40"><use href="#svg-settings"/></svg>
+                <span>设置</span>
+            </div>
+            <div class="desktop-icon" data-app="office">
+                <svg width="40" height="40" viewBox="0 0 40 40"><use href="#svg-office"/></svg>
+                <span>喜office</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="taskbar">
+        <div class="start-button" id="startButton">
+            <svg width="24" height="24" viewBox="0 0 40 40"><use href="#svg-windows"/></svg>
+        </div>
+        <div class="taskbar-items" id="taskbarItems"></div>
+        <div class="taskbar-right">
+            <div class="system-tray">
+                <span>🔼</span>
+                <div class="clock" id="clock">
+                    <div id="time">12:00</div>
+                    <div id="date">2024/1/1</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="start-menu" id="startMenu">
+        <input type="text" class="start-search" placeholder="搜索应用、设置和文档">
+        <div class="start-pinned">
+            <div class="start-pinned-title">已固定</div>
+            <div class="start-apps-grid">
+                <div class="start-app" data-app="this-pc">
+                    <svg width="32" height="32" viewBox="0 0 40 40"><use href="#svg-this-pc"/></svg>
+                    <span>此电脑</span>
+                </div>
+                <div class="start-app" data-app="recycle-bin">
+                    <svg width="32" height="32" viewBox="0 0 40 40"><use href="#svg-recycle-bin"/></svg>
+                    <span>回收站</span>
+                </div>
+                <div class="start-app" data-app="browser">
+                    <svg width="32" height="32" viewBox="0 0 40 40"><use href="#svg-browser"/></svg>
+                    <span>喜edge</span>
+                </div>
+                <div class="start-app" data-app="settings">
+                    <svg width="32" height="32" viewBox="0 0 40 40"><use href="#svg-settings"/></svg>
+                    <span>设置</span>
+                </div>
+                <div class="start-app" data-app="office">
+                    <svg width="32" height="32" viewBox="0 0 40 40"><use href="#svg-office"/></svg>
+                    <span>喜office</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="context-menu" id="contextMenu">
+        <div class="context-menu-item" data-action="refresh">🔄 刷新</div>
+        <div class="context-menu-divider"></div>
+        <div class="context-menu-item" data-action="new-folder">� 新建文件夹</div>
+        <div class="context-menu-item" data-action="display-settings">🖥️ 显示设置</div>
+        <div class="context-menu-divider"></div>
+        <div class="context-menu-item" data-action="personalize">🎨 个性化</div>
+    </div>
+
+    <script>
+        function iconSvg(name, size = 24) {
+            return `<svg width="${size}" height="${size}" viewBox="0 0 40 40"><use href="#svg-${name}"/></svg>`;
+        }
+        
+        const appConfigs = {
+            'this-pc': {
+                title: '此电脑',
+                icon: 'this-pc',
+                width: 900,
+                height: 600,
+                content: 'this-pc'
+            },
+            'recycle-bin': {
+                title: '回收站',
+                icon: 'recycle-bin',
+                width: 800,
+                height: 500,
+                content: 'recycle-bin'
+            },
+            'browser': {
+                title: '喜edge',
+                icon: 'browser',
+                width: 1000,
+                height: 700,
+                content: 'browser'
+            },
+            'settings': {
+                title: '设置',
+                icon: 'settings',
+                width: 900,
+                height: 650,
+                content: 'settings'
+            },
+            'office': {
+                title: '喜office',
+                icon: 'office',
+                width: 950,
+                height: 700,
+                content: 'office'
+            }
+        };
+
+        let windows = [];
+        let zIndex = 1000;
+        let activeWindow = null;
+        let dragState = null;
+        let resizeState = null;
+        let isLocked = true;
+
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('time').textContent = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('date').textContent = now.toLocaleDateString('zh-CN', { year: 'numeric', month: 'numeric', day: 'numeric' });
+            
+            if (document.getElementById('lockTime')) {
+                document.getElementById('lockTime').textContent = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+                document.getElementById('lockDate').textContent = now.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' });
+            }
+        }
+        
+        function unlockScreen() {
+            if (!isLocked) return;
+            isLocked = false;
+            const lockScreen = document.getElementById('lock-screen');
+            lockScreen.classList.add('hidden');
+            setTimeout(() => {
+                lockScreen.style.display = 'none';
+            }, 500);
+        }
+        
+        document.getElementById('lock-screen').addEventListener('click', unlockScreen);
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && isLocked) {
+                unlockScreen();
+            }
+        });
+        
+        updateClock();
+        setInterval(updateClock, 1000);
+
+        function createWindow(appId) {
+            const config = appConfigs[appId];
+            if (!config) return;
+
+            const existingWindow = windows.find(w => w.appId === appId);
+            if (existingWindow) {
+                if (existingWindow.minimized) {
+                    existingWindow.element.style.display = 'flex';
+                    existingWindow.element.classList.remove('minimized');
+                    existingWindow.minimized = false;
+                    bringToFront(existingWindow.element);
+                } else {
+                    bringToFront(existingWindow.element);
+                }
+                updateTaskbar();
+                return;
+            }
+
+            const windowEl = document.createElement('div');
+            windowEl.className = 'window';
+            windowEl.style.width = config.width + 'px';
+            windowEl.style.height = config.height + 'px';
+            windowEl.style.left = 100 + windows.length * 30 + 'px';
+            windowEl.style.top = 50 + windows.length * 30 + 'px';
+            windowEl.style.zIndex = ++zIndex;
+
+            windowEl.innerHTML = `
+                <div class="window-header">
+                    <div class="window-title">
+                        ${iconSvg(config.icon, 16)}
+                        <span>${config.title}</span>
+                    </div>
+                    <div class="window-controls">
+                        <div class="window-control minimize"><svg width="12" height="12" viewBox="0 0 12 12"><line x1="2" y1="6" x2="10" y2="6" stroke="currentColor" stroke-width="1.5"/></svg></div>
+                        <div class="window-control maximize"><svg width="12" height="12" viewBox="0 0 12 12"><rect x="2" y="2" width="8" height="8" stroke="currentColor" stroke-width="1.5" fill="none"/></svg></div>
+                        <div class="window-control close"><svg width="12" height="12" viewBox="0 0 12 12"><line x1="2" y1="2" x2="10" y2="10" stroke="currentColor" stroke-width="1.5"/><line x1="10" y1="2" x2="2" y2="10" stroke="currentColor" stroke-width="1.5"/></svg></div>
+                    </div>
+                </div>
+                <div class="window-content"></div>
+            `;
+
+            document.body.appendChild(windowEl);
+
+            const windowObj = {
+                appId: appId,
+                element: windowEl,
+                minimized: false
+            };
+            windows.push(windowObj);
+
+            windowEl.querySelector('.window-header').addEventListener('mousedown', (e) => {
+                if (e.target.classList.contains('window-control')) return;
+                startDrag(e, windowEl);
+            });
+
+            windowEl.querySelector('.minimize').addEventListener('click', () => minimizeWindow(windowObj));
+            windowEl.querySelector('.maximize').addEventListener('click', () => toggleMaximize(windowEl));
+            windowEl.querySelector('.close').addEventListener('click', () => closeWindow(windowObj));
+
+            windowEl.addEventListener('mousedown', () => bringToFront(windowEl));
+
+            loadAppContent(appId, windowEl.querySelector('.window-content'));
+            updateTaskbar();
+        }
+
+        function loadAppContent(appId, contentEl) {
+            switch(appId) {
+                case 'this-pc':
+                    const fileSystem = {
+                        'main': {
+                            title: '此电脑',
+                            items: [
+                                { name: '本地磁盘 (C:)', type: 'drive', drive: 'C' },
+                                { name: '本地磁盘 (D:)', type: 'drive', drive: 'D' }
+                            ]
+                        },
+                        'C': {
+                            title: '本地磁盘 (C:)',
+                            items: [
+                                { name: 'Program Files', type: 'folder', path: 'C-ProgramFiles' },
+                                { name: 'Program Files (x86)', type: 'folder', path: 'C-ProgramFiles86' },
+                                { name: 'Users', type: 'folder', path: 'C-Users' },
+                                { name: 'Windows', type: 'folder', path: 'C-Windows' }
+                            ]
+                        },
+                        'D': {
+                            title: '本地磁盘 (D:)',
+                            items: [
+                                { name: '喜Edge', type: 'folder', path: 'D-喜Edge' },
+                                { name: '设置', type: 'folder', path: 'D-设置' },
+                                { name: '喜Office', type: 'folder', path: 'D-喜Office' }
+                            ]
+                        },
+                        'C-ProgramFiles': {
+                            title: 'Program Files',
+                            items: [
+                                { name: 'Microsoft', type: 'folder', path: 'C-Microsoft' },
+                                { name: 'Internet Explorer', type: 'folder', path: 'C-IE' }
+                            ]
+                        },
+                        'C-ProgramFiles86': {
+                            title: 'Program Files (x86)',
+                            items: [
+                                { name: 'Common Files', type: 'folder', path: 'C-CommonFiles' }
+                            ]
+                        },
+                        'C-Users': {
+                            title: 'Users',
+                            items: [
+                                { name: 'Administrator', type: 'folder', path: 'C-Admin' },
+                                { name: 'Public', type: 'folder', path: 'C-Public' }
+                            ]
+                        },
+                        'C-Windows': {
+                            title: 'Windows',
+                            items: [
+                                { name: 'System32', type: 'folder', path: 'C-System32' },
+                                { name: 'Fonts', type: 'folder', path: 'C-Fonts' },
+                                { name: 'Resources', type: 'folder', path: 'C-Resources' },
+                                { name: 'notepad.exe', type: 'exe' },
+                                { name: 'calc.exe', type: 'exe' },
+                                { name: 'mspaint.exe', type: 'exe' }
+                            ]
+                        },
+                        'C-System32': {
+                            title: 'System32',
+                            items: [
+                                { name: 'cmd.exe', type: 'exe' },
+                                { name: 'taskmgr.exe', type: 'exe' },
+                                { name: 'regedit.exe', type: 'exe' },
+                                { name: 'config', type: 'folder', path: 'C-Config' }
+                            ]
+                        },
+                        'D-喜Edge': {
+                            title: '喜Edge',
+                            items: [
+                                { name: 'Application', type: 'folder', path: 'D-喜Edge-App' },
+                                { name: 'Cache', type: 'folder', path: 'D-喜Edge-Cache' }
+                            ]
+                        },
+                        'D-设置': {
+                            title: '设置',
+                            items: [
+                                { name: '主题', type: 'file', icon: 'settings' },
+                                { name: '壁纸', type: 'file', icon: 'wallpaper' },
+                                { name: '关于', type: 'file', icon: 'info' }
+                            ]
+                        },
+                        'D-喜Office': {
+                            title: '喜Office',
+                            items: [
+                                { name: 'Word', type: 'file', icon: 'word' },
+                                { name: 'Excel', type: 'file', icon: 'excel' },
+                                { name: 'PowerPoint', type: 'file', icon: 'ppt' }
+                            ]
+                        },
+                        'C-System32': {
+                            title: 'System32',
+                            items: [
+                                { name: 'cmd.exe', type: 'file', icon: 'exe' },
+                                { name: 'notepad.exe', type: 'file', icon: 'exe' },
+                                { name: 'config', type: 'folder', path: 'C-Config' }
+                            ]
+                        },
+                        'C-Fonts': {
+                            title: 'Fonts',
+                            items: [
+                                { name: 'msyh.ttc', type: 'file', icon: 'font' },
+                                { name: 'simsun.ttc', type: 'file', icon: 'font' }
+                            ]
+                        },
+                        'C-Resources': {
+                            title: 'Resources',
+                            items: [
+                                { name: 'Themes', type: 'folder', path: 'C-Themes' },
+                                { name: 'Icons', type: 'folder', path: 'C-Icons' }
+                            ]
+                        },
+                        'C-Microsoft': {
+                            title: 'Microsoft',
+                            items: [
+                                { name: 'Edge', type: 'folder', path: 'C-Edge' }
+                            ]
+                        },
+                        'C-Admin': {
+                            title: 'Administrator',
+                            items: [
+                                { name: 'Desktop', type: 'folder', path: 'C-AdminDesktop' },
+                                { name: 'Documents', type: 'folder', path: 'C-AdminDocs' },
+                                { name: 'Downloads', type: 'folder', path: 'C-AdminDownloads' }
+                            ]
+                        },
+                        'D-喜Edge-App': {
+                            title: 'Application',
+                            items: [
+                                { name: '喜Edge.exe', type: 'file', icon: 'exe' }
+                            ]
+                        },
+                        'D-喜Edge-Cache': {
+                            title: 'Cache',
+                            items: [
+                                { name: 'temp.dat', type: 'file', icon: 'file' }
+                            ]
+                        }
+                    };
+                    
+                    let currentPath = 'main';
+                    const renderThisPC = () => {
+                        const data = fileSystem[currentPath];
+                        const isMain = currentPath === 'main';
+                        let html = `
+                            <div class="this-pc-view">
+                                <div class="this-pc-header">
+                                    ${!isMain ? '<div class="back-btn"><svg width="16" height="16" viewBox="0 0 40 40"><use href="#svg-arrow-left"/></svg>返回</div>' : ''}
+                                    <span>${data.title}</span>
+                                </div>
+                                <div class="${isMain ? 'drive-grid' : 'file-grid'}">
+                        `;
+                        
+                        data.items.forEach((item, index) => {
+                            if (item.type === 'folder') {
+                                html += `<div class="file-item" data-path="${item.path}">
+                                    <svg width="48" height="48" viewBox="0 0 40 40"><use href="#svg-folder"/></svg>
+                                    <span>${item.name}</span>
+                                </div>`;
+                            } else if (item.type === 'drive') {
+                                const driveSize = item.drive === 'C' ? '234 GB 可用，共 476 GB' : '156 GB 可用，共 292 GB';
+                                const driveWidth = item.drive === 'C' ? '51%' : '47%';
+                                html += `<div class="drive-item" data-drive="${item.drive}">
+                                    <svg width="48" height="48" viewBox="0 0 40 40"><use href="#svg-hard-disk"/></svg>
+                                    <div class="drive-info">
+                                        <div class="drive-name">${item.name}</div>
+                                        <div class="drive-size">${driveSize}</div>
+                                        <div class="drive-bar"><div class="drive-bar-fill" style="width: ${driveWidth}"></div></div>
+                                    </div>
+                                </div>`;
+                            } else if (item.type === 'exe') {
+                                let exeIcon = '#svg-notepad';
+                                if (item.name.includes('calc')) exeIcon = '#svg-calc';
+                                else if (item.name.includes('mspaint')) exeIcon = '#svg-mspaint';
+                                else if (item.name.includes('cmd')) exeIcon = '#svg-cmd';
+                                else if (item.name.includes('taskmgr')) exeIcon = '#svg-taskmgr';
+                                else if (item.name.includes('regedit')) exeIcon = '#svg-regedit';
+                                html += `<div class="file-item">
+                                    <svg width="48" height="48" viewBox="0 0 40 40"><use href="${exeIcon}"/></svg>
+                                    <span>${item.name}</span>
+                                </div>`;
+                            } else {
+                                html += `<div class="file-item">
+                                    <svg width="48" height="48" viewBox="0 0 40 40"><use href="#svg-file"/></svg>
+                                    <span>${item.name}</span>
+                                </div>`;
+                            }
+                        });
+                        
+                        html += `</div></div>`;
+                        contentEl.innerHTML = html;
+                        
+                        contentEl.querySelectorAll('.file-item[data-path]').forEach(item => {
+                            item.addEventListener('dblclick', () => {
+                                currentPath = item.dataset.path;
+                                renderThisPC();
+                            });
+                        });
+                        
+                        contentEl.querySelectorAll('.drive-item').forEach(item => {
+                            item.addEventListener('dblclick', () => {
+                                currentPath = item.dataset.drive;
+                                renderThisPC();
+                            });
+                        });
+                        
+                        const backBtn = contentEl.querySelector('.back-btn');
+                        if (backBtn) {
+                            backBtn.addEventListener('click', () => {
+                                if (currentPath === 'C' || currentPath === 'D') {
+                                    currentPath = 'main';
+                                } else if (currentPath.startsWith('C-')) {
+                                    currentPath = 'C';
+                                } else if (currentPath.startsWith('D-')) {
+                                    currentPath = 'D';
+                                } else {
+                                    currentPath = 'main';
+                                }
+                                renderThisPC();
+                            });
+                        }
+                    };
+                    renderThisPC();
+                    break;
+
+                case 'recycle-bin':
+                    contentEl.innerHTML = `
+                        <div class="recycle-bin-content">
+                            <div class="recycle-bin-header">回收站</div>
+                            <div class="recycle-bin-empty">
+                                <svg width="80" height="80" viewBox="0 0 40 40"><use href="#svg-recycle-bin"/></svg>
+                                <p>回收站为空</p>
+                            </div>
+                        </div>
+                    `;
+                    break;
+
+                case 'browser':
+                    contentEl.innerHTML = `
+                        <div style="display:flex;flex-direction:column;height:100%">
+                            <div class="browser-toolbar">
+                                <div class="browser-nav-btn">◀</div>
+                                <div class="browser-nav-btn">▶</div>
+                                <div class="browser-nav-btn">🔄</div>
+                                <input type="text" class="browser-url" id="browserUrl" placeholder="搜索或输入网址" value="https://space.bilibili.com/3546391678814812">
+                                <div class="browser-nav-btn">↗</div>
+                            </div>
+                            <iframe class="browser-iframe" id="browserFrame" src="https://space.bilibili.com/3546391678814812"></iframe>
+                        </div>
+                    `;
+                    setTimeout(() => {
+                        const urlInput = contentEl.querySelector('#browserUrl');
+                        const iframe = contentEl.querySelector('#browserFrame');
+                        urlInput.addEventListener('keypress', (e) => {
+                            if (e.key === 'Enter') {
+                                let url = urlInput.value;
+                                if (!url.startsWith('http')) {
+                                    url = 'https://' + url;
+                                }
+                                iframe.src = url;
+                            }
+                        });
+                    }, 0);
+                    break;
+
+                case 'settings':
+                    let systemSettings = {
+                        brightness: 80,
+                        displayScale: 100,
+                        volume: 70,
+                        notifications: true,
+                        powerMode: 'balanced',
+                        nightLight: false,
+                        darkMode: true,
+                        lastBrightness: 80,
+                        wifiOn: true
+                    };
+                    
+                    const systemSubPages = {
+                        'display': {
+                            title: '显示',
+                            icon: 'svg-display',
+                            items: [
+                                { type: 'slider', id: 'brightness', title: '屏幕亮度', desc: '调整屏幕亮度', min: 0, max: 100, value: systemSettings.brightness, suffix: '%' },
+                                { type: 'select', id: 'scale', title: '显示比例', desc: '更改文本和应用的大小', options: [
+                                    { value: '75', label: '75%' },
+                                    { value: '100', label: '100% (默认)' },
+                                    { value: '125', label: '125%' },
+                                    { value: '150', label: '150%' },
+                                    { value: '175', label: '175%' },
+                                    { value: '200', label: '200%' }
+                                ], value: String(systemSettings.displayScale) },
+                                { type: 'toggle', id: 'nightLight', title: '夜间模式', desc: '减少屏幕蓝光', value: systemSettings.nightLight }
+                            ]
+                        },
+                        'sound': {
+                            title: '声音',
+                            icon: 'svg-volume',
+                            items: [
+                                { type: 'slider', id: 'volume', title: '主音量', desc: '调整系统音量', min: 0, max: 100, value: systemSettings.volume, suffix: '%' },
+                                { type: 'slider', id: 'micVolume', title: '麦克风音量', desc: '调整麦克风输入音量', min: 0, max: 100, value: 80, suffix: '%' }
+                            ]
+                        },
+                        'notification': {
+                            title: '通知',
+                            icon: 'svg-bell',
+                            items: [
+                                { type: 'toggle', id: 'notifications', title: '获取通知', desc: '允许应用发送通知', value: systemSettings.notifications },
+                                { type: 'toggle', id: 'lockScreenNotifications', title: '锁屏通知', desc: '在锁屏上显示通知', value: true }
+                            ]
+                        },
+                        'power': {
+                            title: '电源和电池',
+                            icon: 'svg-battery',
+                            items: [
+                                { type: 'select', id: 'powerMode', title: '电源模式', desc: '选择电源模式', options: [
+                                    { value: 'power-saver', label: '省电模式' },
+                                    { value: 'balanced', label: '平衡模式' },
+                                    { value: 'high-performance', label: '高性能模式' }
+                                ], value: systemSettings.powerMode },
+                                { type: 'info', title: '电池电量', desc: '85% (接通电源)', value: '85%' }
+                            ]
+                        }
+                    };
+                    
+                    const networkSettings = {
+                        wifiOn: true,
+                        airplaneMode: false,
+                        wifiNetworks: [
+                            { name: 'TP-Link_5G', signal: 90, connected: true },
+                            { name: 'Xiaomi_1234', signal: 75, connected: false },
+                            { name: 'ChinaNet', signal: 60, connected: false },
+                            { name: 'Huawei_5G', signal: 45, connected: false },
+                            { name: 'CMCC', signal: 30, connected: false }
+                        ]
+                    };
+                    
+                    const networkSubPages = {
+                        'wifi': {
+                            title: 'WLAN',
+                            icon: 'svg-wifi',
+                            items: [
+                                { type: 'toggle', id: 'wifiOn', title: 'WLAN', desc: '无线网络连接', value: systemSettings.wifiOn },
+                                { type: 'wifi-networks', id: 'wifiNetworks', networks: networkSettings.wifiNetworks }
+                            ]
+                        },
+                        'ethernet': {
+                            title: '以太网',
+                            icon: 'svg-hard-disk',
+                            items: [
+                                { type: 'info', title: '以太网', desc: '已连接', value: '连接中' }
+                            ]
+                        }
+                    };
+                    
+                    const personalizationSettings = {
+                        wallpaper: '日落',
+                        accentColor: '#3b82f6'
+                    };
+                    
+                    const personalizationSubPages = {
+                        'background': {
+                            title: '背景',
+                            icon: 'svg-folder',
+                            items: [
+                                { type: 'wallpaper', id: 'wallpaper', title: '背景', desc: '选择桌面背景' }
+                            ]
+                        },
+                        'color': {
+                            title: '颜色',
+                            icon: 'svg-personalization',
+                            items: [
+                                { type: 'accentColor', id: 'accentColor', title: '强调颜色', desc: '选择系统强调色' },
+                                { type: 'toggle', id: 'transparency', title: '透明效果', desc: '启用窗口透明效果', value: true }
+                            ]
+                        }
+                    };
+                    
+                    const themeSettings = {
+                        themeMode: 'dark',
+                        animation: true
+                    };
+                    
+                    const themeSubPages = {
+                        'theme-settings': {
+                            title: '主题设置',
+                            icon: 'svg-theme',
+                            items: [
+                                { type: 'select', id: 'themeMode', title: '颜色模式', desc: '选择浅色、深色或自定义', options: [
+                                    { value: 'light', label: '浅色' },
+                                    { value: 'dark', label: '深色' },
+                                    { value: 'auto', label: '自动' }
+                                ], value: themeSettings.themeMode },
+                                { type: 'toggle', id: 'animation', title: '动画效果', desc: '启用系统动画', value: themeSettings.animation }
+                            ]
+                        }
+                    };
+                    
+                    const timeSettings = {
+                        autoTime: true,
+                        timezone: 'UTC+8'
+                    };
+                    
+                    const timeSubPages = {
+                        'datetime': {
+                            title: '日期和时间',
+                            icon: 'svg-clock',
+                            items: [
+                                { type: 'toggle', id: 'autoTime', title: '自动设置时间', desc: '自动从网络获取时间', value: timeSettings.autoTime },
+                                { type: 'select', id: 'timezone', title: '时区', desc: '选择时区', options: [
+                                    { value: 'UTC+8', label: '中国标准时间 (UTC+8)' },
+                                    { value: 'UTC+9', label: '日本标准时间 (UTC+9)' },
+                                    { value: 'UTC', label: '世界协调时间 (UTC)' }
+                                ], value: timeSettings.timezone }
+                            ]
+                        },
+                        'language': {
+                            title: '语言',
+                            icon: 'svg-settings',
+                            items: [
+                                { type: 'info', title: '显示语言', desc: '中文(简体)', value: '当前语言' }
+                            ]
+                        }
+                    };
+                    
+                    const gameSettings = {
+                        gameMode: false,
+                        gameBar: true
+                    };
+                    
+                    const gameSubPages = {
+                        'game-mode': {
+                            title: '游戏模式',
+                            icon: 'svg-game',
+                            items: [
+                                { type: 'toggle', id: 'gameMode', title: '游戏模式', desc: '优化游戏性能', value: gameSettings.gameMode },
+                                { type: 'toggle', id: 'gameBar', title: '游戏栏', desc: '使用游戏栏录制和广播', value: gameSettings.gameBar }
+                            ]
+                        }
+                    };
+                    
+                    const accessibilitySettings = {
+                        narrator: false,
+                        magnifier: false
+                    };
+                    
+                    const accessibilitySubPages = {
+                        'visual': {
+                            title: '视觉',
+                            icon: 'svg-contrast',
+                            items: [
+                                { type: 'toggle', id: 'narrator', title: '讲述人', desc: '屏幕阅读器', value: accessibilitySettings.narrator },
+                                { type: 'toggle', id: 'magnifier', title: '放大镜', desc: '放大屏幕内容', value: accessibilitySettings.magnifier },
+                                { type: 'slider', id: 'cursorSize', title: '光标大小', desc: '调整鼠标光标大小', min: 1, max: 5, value: 2, suffix: '' }
+                            ]
+                        }
+                    };
+                    
+                    const privacySettings = {
+                        location: false,
+                        camera: true,
+                        microphone: true
+                    };
+                    
+                    const privacySubPages = {
+                        'privacy-location': {
+                            title: '位置服务',
+                            icon: 'svg-map',
+                            items: [
+                                { type: 'toggle', id: 'location', title: '位置服务', desc: '允许应用访问位置', value: privacySettings.location }
+                            ]
+                        },
+                        'privacy-camera': {
+                            title: '相机',
+                            icon: 'svg-camera',
+                            items: [
+                                { type: 'toggle', id: 'camera', title: '相机', desc: '允许应用访问相机', value: privacySettings.camera }
+                            ]
+                        },
+                        'privacy-mic': {
+                            title: '麦克风',
+                            icon: 'svg-mic',
+                            items: [
+                                { type: 'toggle', id: 'microphone', title: '麦克风', desc: '允许应用访问麦克风', value: privacySettings.microphone }
+                            ]
+                        }
+                    };
+                    
+                    let currentSettingsPage = 'system';
+                    let currentSubPages = systemSubPages;
+                    
+                    contentEl.innerHTML = `
+                        <div class="settings-container">
+                            <div class="settings-sidebar">
+                                <input type="text" class="settings-search" placeholder="查找设置">
+                                <div class="settings-item active" data-page="system">
+                                    <svg width="20" height="20" viewBox="0 0 40 40"><use href="#svg-display"/></svg>
+                                    <span>系统</span>
+                                </div>
+                                <div class="settings-item" data-page="network">
+                                    <svg width="20" height="20" viewBox="0 0 40 40"><use href="#svg-wifi"/></svg>
+                                    <span>网络和 Internet</span>
+                                </div>
+                                <div class="settings-item" data-page="personalization">
+                                    <svg width="20" height="20" viewBox="0 0 40 40"><use href="#svg-personalization"/></svg>
+                                    <span>个性化</span>
+                                </div>
+                                <div class="settings-item" data-page="theme">
+                                    <svg width="20" height="20" viewBox="0 0 40 40"><use href="#svg-theme"/></svg>
+                                    <span>主题</span>
+                                </div>
+                                <div class="settings-item" data-page="time">
+                                    <svg width="20" height="20" viewBox="0 0 40 40"><use href="#svg-clock"/></svg>
+                                    <span>时间和语言</span>
+                                </div>
+                                <div class="settings-item" data-page="game">
+                                    <svg width="20" height="20" viewBox="0 0 40 40"><use href="#svg-game"/></svg>
+                                    <span>游戏</span>
+                                </div>
+                                <div class="settings-item" data-page="accessibility">
+                                    <svg width="20" height="20" viewBox="0 0 40 40"><use href="#svg-contrast"/></svg>
+                                    <span>辅助功能</span>
+                                </div>
+                                <div class="settings-item" data-page="privacy">
+                                    <svg width="20" height="20" viewBox="0 0 40 40"><use href="#svg-shield"/></svg>
+                                    <span>隐私和安全性</span>
+                                </div>
+                                <div class="settings-item" data-page="app">
+                                    <svg width="20" height="20" viewBox="0 0 40 40"><use href="#svg-store"/></svg>
+                                    <span>应用</span>
+                                </div>
+                                <div class="settings-item" data-page="info">
+                                    <svg width="20" height="20" viewBox="0 0 40 40"><use href="#svg-system"/></svg>
+                                    <span>系统信息</span>
+                                </div>
+                            </div>
+                            <div class="settings-main" id="settingsMain"></div>
+                        </div>
+                    `;
+                    
+                    let currentSubPage = null;
+                    
+                    const renderSystemPage = (direction = 'back') => {
+                        const mainEl = contentEl.querySelector('#settingsMain');
+                        currentSubPages = systemSubPages;
+                        currentSettingsPage = 'system';
+                        mainEl.innerHTML = `
+                            <div class="settings-title">系统</div>
+                            <div class="settings-section">
+                                <div class="settings-menu-item" data-subpage="display" onclick="window.renderSettingsSubPage('display', event)">
+                                    <span><svg width="20" height="20" viewBox="0 0 40 40" style="vertical-align:middle;margin-right:8px"><use href="#svg-display"/></svg>显示</span>
+                                    <span class="menu-arrow">›</span>
+                                </div>
+                                <div class="settings-menu-item" data-subpage="sound" onclick="window.renderSettingsSubPage('sound', event)">
+                                    <span><svg width="20" height="20" viewBox="0 0 40 40" style="vertical-align:middle;margin-right:8px"><use href="#svg-volume"/></svg>声音</span>
+                                    <span class="menu-arrow">›</span>
+                                </div>
+                                <div class="settings-menu-item" data-subpage="notification" onclick="window.renderSettingsSubPage('notification', event)">
+                                    <span><svg width="20" height="20" viewBox="0 0 40 40" style="vertical-align:middle;margin-right:8px"><use href="#svg-bell"/></svg>通知</span>
+                                    <span class="menu-arrow">›</span>
+                                </div>
+                                <div class="settings-menu-item" data-subpage="power" onclick="window.renderSettingsSubPage('power', event)">
+                                    <span><svg width="20" height="20" viewBox="0 0 40 40" style="vertical-align:middle;margin-right:8px"><use href="#svg-battery"/></svg>电源和电池</span>
+                                    <span class="menu-arrow">›</span>
+                                </div>
+                            </div>
+                        `;
+                        
+                        window.renderSettingsSubPage = function(subpage, event) {
+                            if (event) event.stopPropagation();
+                            renderSubPage(subpage, 'forward', currentSubPages);
+                        };
+                        
+                        mainEl.querySelectorAll('.settings-menu-item').forEach(item => {
+                            item.style.pointerEvents = 'auto';
+                        });
+                    };
+                    
+                    const renderSubPage = (subpageId, direction = 'forward', subPages = currentSubPages) => {
+                        currentSubPage = subpageId;
+                        const subPage = subPages[subpageId];
+                        const mainEl = contentEl.querySelector('#settingsMain');
+                        
+                        let itemsHtml = '';
+                        subPage.items.forEach((item, index) => {
+                            if (item.type === 'slider') {
+                                itemsHtml += `
+                                    <div class="settings-card">
+                                        <svg width="32" height="32" viewBox="0 0 40 40" style="float:left;margin-right:12px"><use href="#${subPage.icon}"/></svg>
+                                        <div class="settings-card-title">${item.title}</div>
+                                        <div class="settings-card-desc">${item.desc}</div>
+                                        <div class="slider-container">
+                                            <input type="range" class="settings-slider" id="setting-${item.id}" min="${item.min}" max="${item.max}" ${item.step ? 'step="' + item.step + '"' : ''} value="${item.value}">
+                                            <span class="slider-value">${item.value}${item.suffix || ''}</span>
+                                        </div>
+                                    </div>
+                                `;
+                            } else if (item.type === 'toggle') {
+                                itemsHtml += `
+                                    <div class="settings-card" style="display:flex;justify-content:space-between;align-items:center">
+                                        <div>
+                                            <div class="settings-card-title">${item.title}</div>
+                                            <div class="settings-card-desc">${item.desc}</div>
+                                        </div>
+                                        <div class="toggle-switch ${item.value ? 'on' : ''}" id="setting-${item.id}"></div>
+                                    </div>
+                                `;
+                            } else if (item.type === 'select') {
+                                let optionsHtml = item.options.map(opt => `<option value="${opt.value}" ${opt.value === item.value ? 'selected' : ''}>${opt.label}</option>`).join('');
+                                itemsHtml += `
+                                    <div class="settings-card">
+                                        <svg width="32" height="32" viewBox="0 0 40 40" style="float:left;margin-right:12px"><use href="#${subPage.icon}"/></svg>
+                                        <div class="settings-card-title">${item.title}</div>
+                                        <div class="settings-card-desc">${item.desc}</div>
+                                        <select class="settings-select" id="setting-${item.id}">
+                                            ${optionsHtml}
+                                        </select>
+                                    </div>
+                                `;
+                            } else if (item.type === 'wallpaper') {
+                                const wallpapers = [
+                                    { value: 'sunset', label: '日落', url: 'https://images.unsplash.com/photo-1495616811223-4d98c6e9c869?w=1920&q=80' },
+                                    { value: 'ocean', label: '海洋', url: 'https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=1920&q=80' },
+                                    { value: 'forest', label: '森林', url: 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=1920&q=80' },
+                                    { value: 'city', label: '城市', url: 'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=1920&q=80' },
+                                    { value: 'mountain', label: '山脉', url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80' },
+                                    { value: 'space', label: '星空', url: 'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=1920&q=80' }
+                                ];
+                                const currentWallpaper = wallpapers.find(w => w.value === personalizationSettings.wallpaper) || wallpapers[0];
+                                let thumbnailsHtml = wallpapers.map(w => `
+                                    <div class="wallpaper-thumbnail ${w.value === personalizationSettings.wallpaper ? 'active' : ''}" 
+                                         data-wallpaper="${w.value}" 
+                                         data-url="${w.url}"
+                                         style="background-image: url('${w.url}')">
+                                    </div>
+                                `).join('');
+                                itemsHtml += `
+                                    <div class="settings-card">
+                                        <svg width="32" height="32" viewBox="0 0 40 40" style="float:left;margin-right:12px"><use href="#${subPage.icon}"/></svg>
+                                        <div class="settings-card-title">${item.title}</div>
+                                        <div class="settings-card-desc">${item.desc}</div>
+                                    </div>
+                                    <div class="wallpaper-preview-container">
+                                        <div class="wallpaper-preview-label">预览</div>
+                                        <div class="wallpaper-preview-large" id="wallpaper-preview" style="background-image: url('${currentWallpaper.url}')"></div>
+                                        <div class="wallpaper-thumbnails">${thumbnailsHtml}
+                                            <div class="wallpaper-import-btn" id="wallpaper-import" title="导入本地壁纸">+</div>
+                                        </div>
+                                    </div>
+                                `;
+                            } else if (item.type === 'accentColor') {
+                                const accentColors = [
+                                    { value: '#3b82f6', label: '蓝色' },
+                                    { value: '#22c55e', label: '绿色' },
+                                    { value: '#ef4444', label: '红色' },
+                                    { value: '#f59e0b', label: '橙色' },
+                                    { value: '#8b5cf6', label: '紫色' },
+                                    { value: '#ec4899', label: '粉色' },
+                                    { value: '#14b8a6', label: '青色' },
+                                    { value: '#f97316', label: '黄色' }
+                                ];
+                                let accentColorsHtml = accentColors.map(c => `
+                                    <div class="accent-color-option ${c.value === personalizationSettings.accentColor ? 'active' : ''}" 
+                                         data-color="${c.value}" 
+                                         style="background-color: ${c.value}">
+                                    </div>
+                                `).join('');
+                                itemsHtml += `
+                                    <div class="settings-card">
+                                        <svg width="32" height="32" viewBox="0 0 40 40" style="float:left;margin-right:12px"><use href="#${subPage.icon}"/></svg>
+                                        <div class="settings-card-title">${item.title}</div>
+                                        <div class="settings-card-desc">${item.desc}</div>
+                                    </div>
+                                    <div class="accent-color-container">
+                                        <div class="accent-color-palette">${accentColorsHtml}</div>
+                                    </div>
+                                `;
+                            } else if (item.type === 'info') {
+                                itemsHtml += `
+                                    <div class="settings-card">
+                                        <svg width="32" height="32" viewBox="0 0 40 40" style="float:left;margin-right:12px"><use href="#${subPage.icon}"/></svg>
+                                        <div class="settings-card-title">${item.title}</div>
+                                        <div class="settings-card-desc">${item.desc}</div>
+                                        <div class="battery-indicator" style="margin-top:8px">
+                                            <div class="battery-level" style="width: ${item.value}"></div>
+                                        </div>
+                                    </div>
+                                `;
+                            } else if (item.type === 'wifi-networks') {
+                                if (systemSettings.wifiOn) {
+                                    itemsHtml += '<div class="wifi-networks-section"><div class="wifi-networks-title">可用网络</div>';
+                                    item.networks.forEach((network, idx) => {
+                                        itemsHtml += `
+                                            <div class="wifi-network-item" data-network="${network.name}">
+                                                <svg width="20" height="20" viewBox="0 0 40 40" style="margin-right:12px"><use href="#svg-wifi"/></svg>
+                                                <span class="wifi-network-name">${network.name}</span>
+                                                <span class="wifi-network-signal">${network.signal}%</span>
+                                                ${network.connected ? '<span class="wifi-connected-tag">已连接</span>' : ''}
+                                            </div>
+                                        `;
+                                    });
+                                    itemsHtml += '</div>';
+                                }
+                            }
+                        });
+                        
+                        mainEl.innerHTML = `
+                            <div class="settings-subpage-header">
+                                <div class="back-btn" id="backToSystem"><svg width="16" height="16" viewBox="0 0 40 40"><use href="#svg-arrow-left"/></svg>返回</div>
+                                <div class="settings-title">${subPage.title}</div>
+                            </div>
+                            <div class="settings-section">
+                                ${itemsHtml}
+                            </div>
+                        `;
+                        
+                        const backBtn = document.getElementById('backToSystem');
+                        if (backBtn) {
+                            backBtn.onclick = function() {
+                                const mainEl = contentEl.querySelector('#settingsMain');
+                                mainEl.style.opacity = '0';
+                                mainEl.style.transform = 'translateX(-20px)';
+                                setTimeout(function() {
+                                    getBackFunction()();
+                                    setTimeout(function() {
+                                        const newMainEl = contentEl.querySelector('#settingsMain');
+                                        newMainEl.style.opacity = '1';
+                                        newMainEl.style.transform = 'translateX(0)';
+                                    }, 50);
+                                }, 200);
+                            };
+                        }
+                        
+                        mainEl.querySelectorAll('.settings-slider').forEach(slider => {
+                            slider.addEventListener('input', (e) => {
+                                const settingId = e.target.id.replace('setting-', '');
+                                systemSettings[settingId] = e.target.value;
+                                e.target.nextElementSibling.textContent = e.target.value + '%';
+                                
+                                if (settingId === 'brightness') {
+                                    const brightnessOverlay = document.getElementById('brightness-overlay');
+                                    if (brightnessOverlay) {
+                                        brightnessOverlay.style.opacity = (100 - e.target.value) / 100 * 0.85;
+                                    }
+                                }
+                                
+                                if (settingId === 'nightLight') {
+                                    const brightnessOverlay = document.getElementById('brightness-overlay');
+                                    if (e.target.checked) {
+                                        if (brightnessOverlay) {
+                                            brightnessOverlay.style.backgroundColor = 'rgba(255, 180, 0, 0.2)';
+                                            brightnessOverlay.style.opacity = 1;
+                                        }
+                                        systemSettings.brightness = 60;
+                                        const brightnessSlider = document.getElementById('setting-brightness');
+                                        if (brightnessSlider) {
+                                            brightnessSlider.value = 60;
+                                            brightnessSlider.nextElementSibling.textContent = '60%';
+                                        }
+                                    } else {
+                                        if (brightnessOverlay) {
+                                            brightnessOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.85)';
+                                            brightnessOverlay.style.opacity = (100 - systemSettings.brightness) / 100 * 0.85;
+                                        }
+                                    }
+                                }
+                                
+                                if (settingId === 'scale') {
+                                    const scale = parseInt(e.target.value) / 100;
+                                    document.body.style.zoom = scale;
+                                    const wallpaperBg = document.getElementById('wallpaper-bg');
+                                    if (wallpaperBg) {
+                                        wallpaperBg.style.transform = 'scale(' + (1/scale) + ')';
+                                        wallpaperBg.style.transformOrigin = 'center center';
+                                    }
+                                }
+                            });
+                        });
+                        
+                        mainEl.querySelectorAll('.toggle-switch').forEach(toggle => {
+                            toggle.addEventListener('click', () => {
+                                const settingId = toggle.id.replace('setting-', '');
+                                systemSettings[settingId] = !systemSettings[settingId];
+                                toggle.classList.toggle('on');
+                                
+                                if (settingId === 'nightLight') {
+                                    const brightnessOverlay = document.getElementById('brightness-overlay');
+                                    if (systemSettings[settingId]) {
+                                        systemSettings.lastBrightness = systemSettings.brightness;
+                                        if (brightnessOverlay) {
+                                            brightnessOverlay.style.backgroundColor = 'rgba(255, 180, 0, 0.2)';
+                                            brightnessOverlay.style.opacity = 1;
+                                        }
+                                        systemSettings.brightness = 60;
+                                        const brightnessSlider = document.getElementById('setting-brightness');
+                                        if (brightnessSlider) {
+                                            brightnessSlider.value = 60;
+                                            brightnessSlider.nextElementSibling.textContent = '60%';
+                                        }
+                                    } else {
+                                        if (brightnessOverlay) {
+                                            brightnessOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.85)';
+                                        }
+                                        const prevBrightness = systemSettings.lastBrightness;
+                                        systemSettings.brightness = prevBrightness;
+                                        const brightnessSlider = document.getElementById('setting-brightness');
+                                        if (brightnessSlider) {
+                                            brightnessSlider.value = prevBrightness;
+                                            brightnessSlider.nextElementSibling.textContent = prevBrightness + '%';
+                                        }
+                                        if (brightnessOverlay) {
+                                            brightnessOverlay.style.opacity = (100 - prevBrightness) / 100 * 0.85;
+                                        }
+                                    }
+                                }
+                                
+                                if (settingId === 'wifiOn') {
+                                    const wifiSection = document.querySelector('.wifi-networks-section');
+                                    if (wifiSection) {
+                                        if (systemSettings.wifiOn) {
+                                            wifiSection.style.display = 'block';
+                                            const firstNetwork = wifiSection.querySelector('.wifi-network-item');
+                                            if (firstNetwork) {
+                                                const tag = firstNetwork.querySelector('.wifi-connected-tag');
+                                                if (tag) {
+                                                    tag.remove();
+                                                }
+                                                const spinner = firstNetwork.querySelector('.wifi-connecting');
+                                                if (spinner) {
+                                                    spinner.remove();
+                                                }
+                                                const connectingSpinner = document.createElement('span');
+                                                connectingSpinner.className = 'wifi-connecting';
+                                                firstNetwork.querySelector('.wifi-network-signal').appendChild(connectingSpinner);
+                                                setTimeout(() => {
+                                                    const sp = firstNetwork.querySelector('.wifi-connecting');
+                                                    if (sp) sp.remove();
+                                                    const connectedTag = document.createElement('span');
+                                                    connectedTag.className = 'wifi-connected-tag';
+                                                    connectedTag.textContent = '已连接';
+                                                    firstNetwork.querySelector('.wifi-network-signal').appendChild(connectedTag);
+                                                }, 3000);
+                                            }
+                                        } else {
+                                            wifiSection.style.display = 'none';
+                                        }
+                                    }
+                                }
+                            });
+                        });
+                        
+                        mainEl.querySelectorAll('.settings-select').forEach(select => {
+                            select.addEventListener('change', (e) => {
+                                const settingId = e.target.id.replace('setting-', '');
+                                systemSettings[settingId] = e.target.value;
+                                
+                                if (settingId === 'scale') {
+                                    const scale = parseInt(e.target.value) / 100;
+                                    document.body.style.zoom = scale;
+                                    const wallpaperBg = document.getElementById('wallpaper-bg');
+                                    if (wallpaperBg) {
+                                        wallpaperBg.style.transform = 'scale(' + (1/scale) + ')';
+                                        wallpaperBg.style.transformOrigin = 'center center';
+                                    }
+                                }
+                            });
+                        });
+                        
+                        mainEl.querySelectorAll('.wallpaper-thumbnail').forEach(thumb => {
+                            thumb.addEventListener('click', () => {
+                                const wallpaperValue = thumb.dataset.wallpaper;
+                                const wallpaperUrl = thumb.dataset.url;
+                                personalizationSettings.wallpaper = wallpaperValue;
+                                const wallpaperBg = document.getElementById('wallpaper-bg');
+                                if (wallpaperBg) {
+                                    wallpaperBg.style.backgroundImage = `url('${wallpaperUrl}')`;
+                                }
+                                const preview = document.getElementById('wallpaper-preview');
+                                if (preview) {
+                                    preview.style.backgroundImage = `url('${wallpaperUrl}')`;
+                                }
+                                mainEl.querySelectorAll('.wallpaper-thumbnail').forEach(t => t.classList.remove('active'));
+                                thumb.classList.add('active');
+                            });
+                        });
+                        
+                        const importBtn = document.getElementById('wallpaper-import');
+                        if (importBtn) {
+                            importBtn.addEventListener('click', () => {
+                                const input = document.createElement('input');
+                                input.type = 'file';
+                                input.accept = 'image/*';
+                                input.onchange = (e) => {
+                                    const file = e.target.files[0];
+                                    if (file) {
+                                        const reader = new FileReader();
+                                        reader.onload = (event) => {
+                                            const img = new Image();
+                                            img.onload = () => {
+                                                const wallpaperBg = document.getElementById('wallpaper-bg');
+                                                if (wallpaperBg) {
+                                                    wallpaperBg.style.backgroundImage = `url('${event.target.result}')`;
+                                                }
+                                                const preview = document.getElementById('wallpaper-preview');
+                                                if (preview) {
+                                                    preview.style.backgroundImage = `url('${event.target.result}')`;
+                                                }
+                                                personalizationSettings.wallpaper = event.target.result;
+                                                mainEl.querySelectorAll('.wallpaper-thumbnail').forEach(t => t.classList.remove('active'));
+                                            };
+                                            img.src = event.target.result;
+                                        };
+                                        reader.readAsDataURL(file);
+                                    }
+                                };
+                                input.click();
+                            });
+                        }
+                        
+                        mainEl.querySelectorAll('.accent-color-option').forEach(option => {
+                            option.addEventListener('click', () => {
+                                const colorValue = option.dataset.color;
+                                personalizationSettings.accentColor = colorValue;
+                                document.documentElement.style.setProperty('--accent-color', colorValue);
+                                document.querySelectorAll('.toggle-switch.on').forEach(toggle => {
+                                    toggle.style.background = colorValue;
+                                });
+                                mainEl.querySelectorAll('.accent-color-option').forEach(o => o.classList.remove('active'));
+                                option.classList.add('active');
+                            });
+                        });
+                    };
+                    
+                    const renderNetworkPage = () => {
+                        currentSettingsPage = 'network';
+                        currentSubPages = networkSubPages;
+                        const mainEl = contentEl.querySelector('#settingsMain');
+                        mainEl.innerHTML = `
+                            <div class="settings-title">网络和 Internet</div>
+                            <div class="settings-section">
+                                <div class="settings-menu-item" data-subpage="wifi">
+                                    <span><svg width="20" height="20" viewBox="0 0 40 40" style="vertical-align:middle;margin-right:8px"><use href="#svg-wifi"/></svg>WLAN</span>
+                                    <span class="menu-arrow">›</span>
+                                </div>
+                                <div class="settings-menu-item" data-subpage="ethernet">
+                                    <span><svg width="20" height="20" viewBox="0 0 40 40" style="vertical-align:middle;margin-right:8px"><use href="#svg-hard-disk"/></svg>以太网</span>
+                                    <span class="menu-arrow">›</span>
+                                </div>
+                            </div>
+                        `;
+                        mainEl.querySelectorAll('.settings-menu-item').forEach(item => {
+                            item.addEventListener('click', () => {
+                                renderSubPage(item.dataset.subpage, 'forward', networkSubPages);
+                            });
+                        });
+                    };
+                    
+                    const renderPersonalizationPage = () => {
+                        currentSettingsPage = 'personalization';
+                        currentSubPages = personalizationSubPages;
+                        const mainEl = contentEl.querySelector('#settingsMain');
+                        mainEl.innerHTML = `
+                            <div class="settings-title">个性化</div>
+                            <div class="settings-section">
+                                <div class="settings-menu-item" data-subpage="background">
+                                    <span><svg width="20" height="20" viewBox="0 0 40 40" style="vertical-align:middle;margin-right:8px"><use href="#svg-folder"/></svg>背景</span>
+                                    <span class="menu-arrow">›</span>
+                                </div>
+                                <div class="settings-menu-item" data-subpage="color">
+                                    <span><svg width="20" height="20" viewBox="0 0 40 40" style="vertical-align:middle;margin-right:8px"><use href="#svg-personalization"/></svg>颜色</span>
+                                    <span class="menu-arrow">›</span>
+                                </div>
+                            </div>
+                        `;
+                        mainEl.querySelectorAll('.settings-menu-item').forEach(item => {
+                            item.addEventListener('click', () => {
+                                renderSubPage(item.dataset.subpage, 'forward', personalizationSubPages);
+                            });
+                        });
+                    };
+                    
+                    const renderThemePage = () => {
+                        currentSettingsPage = 'theme';
+                        currentSubPages = themeSubPages;
+                        const mainEl = contentEl.querySelector('#settingsMain');
+                        mainEl.innerHTML = `
+                            <div class="settings-title">主题</div>
+                            <div class="settings-section">
+                                <div class="settings-menu-item" data-subpage="theme-settings">
+                                    <span><svg width="20" height="20" viewBox="0 0 40 40" style="vertical-align:middle;margin-right:8px"><use href="#svg-theme"/></svg>主题设置</span>
+                                    <span class="menu-arrow">›</span>
+                                </div>
+                            </div>
+                        `;
+                        mainEl.querySelectorAll('.settings-menu-item').forEach(item => {
+                            item.addEventListener('click', () => {
+                                renderSubPage(item.dataset.subpage, 'forward', themeSubPages);
+                            });
+                        });
+                    };
+                    
+                    const renderTimePage = () => {
+                        currentSettingsPage = 'time';
+                        currentSubPages = timeSubPages;
+                        const mainEl = contentEl.querySelector('#settingsMain');
+                        mainEl.innerHTML = `
+                            <div class="settings-title">时间和语言</div>
+                            <div class="settings-section">
+                                <div class="settings-menu-item" data-subpage="datetime">
+                                    <span><svg width="20" height="20" viewBox="0 0 40 40" style="vertical-align:middle;margin-right:8px"><use href="#svg-clock"/></svg>日期和时间</span>
+                                    <span class="menu-arrow">›</span>
+                                </div>
+                                <div class="settings-menu-item" data-subpage="language">
+                                    <span><svg width="20" height="20" viewBox="0 0 40 40" style="vertical-align:middle;margin-right:8px"><use href="#svg-settings"/></svg>语言</span>
+                                    <span class="menu-arrow">›</span>
+                                </div>
+                            </div>
+                        `;
+                        mainEl.querySelectorAll('.settings-menu-item').forEach(item => {
+                            item.addEventListener('click', () => {
+                                renderSubPage(item.dataset.subpage, 'forward', timeSubPages);
+                            });
+                        });
+                    };
+                    
+                    const renderGamePage = () => {
+                        currentSettingsPage = 'game';
+                        currentSubPages = gameSubPages;
+                        const mainEl = contentEl.querySelector('#settingsMain');
+                        mainEl.innerHTML = `
+                            <div class="settings-title">游戏</div>
+                            <div class="settings-section">
+                                <div class="settings-menu-item" data-subpage="game-mode">
+                                    <span><svg width="20" height="20" viewBox="0 0 40 40" style="vertical-align:middle;margin-right:8px"><use href="#svg-game"/></svg>游戏模式</span>
+                                    <span class="menu-arrow">›</span>
+                                </div>
+                            </div>
+                        `;
+                        mainEl.querySelectorAll('.settings-menu-item').forEach(item => {
+                            item.addEventListener('click', () => {
+                                renderSubPage(item.dataset.subpage, 'forward', gameSubPages);
+                            });
+                        });
+                    };
+                    
+                    const renderAccessibilityPage = () => {
+                        currentSettingsPage = 'accessibility';
+                        currentSubPages = accessibilitySubPages;
+                        const mainEl = contentEl.querySelector('#settingsMain');
+                        mainEl.innerHTML = `
+                            <div class="settings-title">辅助功能</div>
+                            <div class="settings-section">
+                                <div class="settings-menu-item" data-subpage="visual">
+                                    <span><svg width="20" height="20" viewBox="0 0 40 40" style="vertical-align:middle;margin-right:8px"><use href="#svg-contrast"/></svg>视觉</span>
+                                    <span class="menu-arrow">›</span>
+                                </div>
+                            </div>
+                        `;
+                        mainEl.querySelectorAll('.settings-menu-item').forEach(item => {
+                            item.addEventListener('click', () => {
+                                renderSubPage(item.dataset.subpage, 'forward', accessibilitySubPages);
+                            });
+                        });
+                    };
+                    
+                    const renderPrivacyPage = () => {
+                        currentSettingsPage = 'privacy';
+                        currentSubPages = privacySubPages;
+                        const mainEl = contentEl.querySelector('#settingsMain');
+                        mainEl.innerHTML = `
+                            <div class="settings-title">隐私和安全性</div>
+                            <div class="settings-section">
+                                <div class="settings-menu-item" data-subpage="privacy-location">
+                                    <span><svg width="20" height="20" viewBox="0 0 40 40" style="vertical-align:middle;margin-right:8px"><use href="#svg-map"/></svg>位置服务</span>
+                                    <span class="menu-arrow">›</span>
+                                </div>
+                                <div class="settings-menu-item" data-subpage="privacy-camera">
+                                    <span><svg width="20" height="20" viewBox="0 0 40 40" style="vertical-align:middle;margin-right:8px"><use href="#svg-camera"/></svg>相机</span>
+                                    <span class="menu-arrow">›</span>
+                                </div>
+                                <div class="settings-menu-item" data-subpage="privacy-mic">
+                                    <span><svg width="20" height="20" viewBox="0 0 40 40" style="vertical-align:middle;margin-right:8px"><use href="#svg-mic"/></svg>麦克风</span>
+                                    <span class="menu-arrow">›</span>
+                                </div>
+                            </div>
+                        `;
+                        mainEl.querySelectorAll('.settings-menu-item').forEach(item => {
+                            item.addEventListener('click', () => {
+                                renderSubPage(item.dataset.subpage, 'forward', privacySubPages);
+                            });
+                        });
+                    };
+                    
+                    const renderAppPage = () => {
+                        const mainEl = contentEl.querySelector('#settingsMain');
+                        mainEl.innerHTML = `
+                            <div class="settings-title">应用</div>
+                            <div class="settings-section">
+                                <div class="settings-card">
+                                    <div class="settings-card-title">应用和功能</div>
+                                    <div class="settings-card-desc">查看和管理已安装的应用程序</div>
+                                </div>
+                                <div class="settings-card">
+                                    <div class="settings-card-title">默认应用</div>
+                                    <div class="settings-card-desc">设置默认程序</div>
+                                </div>
+                            </div>
+                        `;
+                    };
+                    
+                    const renderInfoPage = () => {
+                        const mainEl = contentEl.querySelector('#settingsMain');
+                        mainEl.innerHTML = `
+                            <div class="settings-title">系统信息</div>
+                            <div class="settings-section">
+                                <div class="settings-card">
+                                    <div class="settings-card-title">设备名称</div>
+                                    <div class="settings-card-desc">DESKTOP-XXXXX</div>
+                                </div>
+                                <div class="settings-card">
+                                    <div class="settings-card-title">处理器</div>
+                                    <div class="settings-card-desc">Intel(R) Core(TM) i5-10400F</div>
+                                </div>
+                                <div class="settings-card">
+                                    <div class="settings-card-title">RAM</div>
+                                    <div class="settings-card-desc">16.0 GB</div>
+                                </div>
+                                <div class="settings-card">
+                                    <div class="settings-card-title">版本</div>
+                                    <div class="settings-card-desc">喜PCOS 1.0.0</div>
+                                </div>
+                            </div>
+                        `;
+                    };
+                    
+                    const getBackFunction = () => {
+                        return () => {
+                            switch(currentSettingsPage) {
+                                case 'network': renderNetworkPage(); break;
+                                case 'personalization': renderPersonalizationPage(); break;
+                                case 'theme': renderThemePage(); break;
+                                case 'time': renderTimePage(); break;
+                                case 'game': renderGamePage(); break;
+                                case 'accessibility': renderAccessibilityPage(); break;
+                                case 'privacy': renderPrivacyPage(); break;
+                                default: renderSystemPage();
+                            }
+                        };
+                    };
+                    
+                    contentEl.querySelectorAll('.settings-item').forEach(item => {
+                        const page = item.dataset.page;
+                        if (page) {
+                            item.addEventListener('click', () => {
+                                contentEl.querySelectorAll('.settings-item').forEach(i => i.classList.remove('active'));
+                                item.classList.add('active');
+                                switch(page) {
+                                    case 'system': renderSystemPage(); break;
+                                    case 'network': renderNetworkPage(); break;
+                                    case 'personalization': renderPersonalizationPage(); break;
+                                    case 'theme': renderThemePage(); break;
+                                    case 'time': renderTimePage(); break;
+                                    case 'game': renderGamePage(); break;
+                                    case 'accessibility': renderAccessibilityPage(); break;
+                                    case 'privacy': renderPrivacyPage(); break;
+                                    case 'app': renderAppPage(); break;
+                                    case 'info': renderInfoPage(); break;
+                                }
+                            });
+                        }
+                    });
+                    
+                    renderSystemPage();
+                    
+                    const initDisplayScale = function() {
+                        const scale = systemSettings.displayScale / 100;
+                        document.body.style.zoom = scale;
+                        const wallpaperBg = document.getElementById('wallpaper-bg');
+                        if (wallpaperBg) {
+                            wallpaperBg.style.transform = 'scale(' + (1/scale) + ')';
+                            wallpaperBg.style.transformOrigin = 'center center';
+                        }
+                    };
+                    setTimeout(initDisplayScale, 100);
+                    break;
+
+                case 'office':
+                    contentEl.innerHTML = `
+                        <div class="office-container">
+                            <div class="office-toolbar">
+                                <button class="office-btn">📄 新建</button>
+                                <button class="office-btn">📂 打开</button>
+                                <button class="office-btn">💾 保存</button>
+                                <button class="office-btn">📋 复制</button>
+                                <button class="office-btn">📝 粘贴</button>
+                                <button class="office-btn">↩️ 撤销</button>
+                                <button class="office-btn">↪️ 重做</button>
+                                <button class="office-btn" style="margin-left:auto">B</button>
+                                <button class="office-btn"><i>I</i></button>
+                                <button class="office-btn"><u>U</u></button>
+                            </div>
+                            <div class="office-content">
+                                <div class="office-document">
+                                    <div class="office-title" contenteditable="true">欢迎使用喜office</div>
+                                    <div class="office-text" contenteditable="true">
+                                        <p>喜office是由喜PCOS团队开发的办公套件，包含文字处理、表格制作、演示文稿等功能。</p>
+                                        <p>这是一个功能强大的办公软件，可以满足您日常办公的各种需求。</p>
+                                        <p><br></p>
+                                        <p><strong>主要功能：</strong></p>
+                                        <p>• 文字处理：创建和编辑文档</p>
+                                        <p>• 表格制作：制作电子表格和数据分析</p>
+                                        <p>• 演示文稿：制作专业的演示文稿</p>
+                                        <p>• 云端同步：支持多设备同步</p>
+                                        <p><br></p>
+                                        <p>开始使用喜office，让办公更高效！</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    break;
+            }
+        }
+
+        function minimizeWindow(windowObj) {
+            if (windowObj.element.classList.contains('minimizing')) return;
+            windowObj.element.classList.add('minimizing');
+            setTimeout(() => {
+                windowObj.element.classList.remove('minimizing');
+                windowObj.element.classList.add('minimized');
+                windowObj.minimized = true;
+                windowObj.element.style.display = 'none';
+                updateTaskbar();
+            }, 250);
+        }
+
+        function toggleMaximize(windowEl) {
+            windowEl.classList.toggle('maximized');
+        }
+
+        function closeWindow(windowObj) {
+            windowObj.element.classList.add('closing');
+            setTimeout(() => {
+                windowObj.element.remove();
+                windows = windows.filter(w => w !== windowObj);
+                updateTaskbar();
+            }, 150);
+        }
+
+        function bringToFront(windowEl) {
+            windowEl.style.zIndex = ++zIndex;
+            windows.forEach(w => {
+                w.element.querySelector('.window-title').style.fontWeight = 'normal';
+            });
+            windowEl.querySelector('.window-title').style.fontWeight = '600';
+        }
+
+        function startDrag(e, windowEl) {
+            if (windowEl.classList.contains('maximized')) return;
+            dragState = {
+                element: windowEl,
+                startX: e.clientX,
+                startY: e.clientY,
+                startLeft: windowEl.offsetLeft,
+                startTop: windowEl.offsetTop
+            };
+            document.addEventListener('mousemove', onDrag);
+            document.addEventListener('mouseup', stopDrag);
+        }
+
+        function onDrag(e) {
+            if (!dragState) return;
+            const dx = e.clientX - dragState.startX;
+            const dy = e.clientY - dragState.startY;
+            dragState.element.style.left = (dragState.startLeft + dx) + 'px';
+            dragState.element.style.top = Math.max(0, dragState.startTop + dy) + 'px';
+        }
+
+        function stopDrag() {
+            dragState = null;
+            document.removeEventListener('mousemove', onDrag);
+            document.removeEventListener('mouseup', stopDrag);
+        }
+
+        function updateTaskbar() {
+            const taskbarItems = document.getElementById('taskbarItems');
+            taskbarItems.innerHTML = '';
+            windows.forEach(w => {
+                const config = appConfigs[w.appId];
+                const item = document.createElement('div');
+                item.className = 'taskbar-item' + (w.minimized ? '' : ' active');
+                item.innerHTML = iconSvg(config.icon, 24);
+                item.addEventListener('click', () => {
+                    if (w.minimized) {
+                        w.element.style.display = 'flex';
+                        w.element.classList.remove('minimized');
+                        w.minimized = false;
+                        bringToFront(w.element);
+                    } else {
+                        minimizeWindow(w);
+                    }
+                    updateTaskbar();
+                });
+                taskbarItems.appendChild(item);
+            });
+        }
+
+        document.querySelectorAll('.desktop-icon').forEach(icon => {
+            icon.addEventListener('dblclick', () => {
+                createWindow(icon.dataset.app);
+            });
+            icon.addEventListener('click', (e) => {
+                document.querySelectorAll('.desktop-icon').forEach(i => i.classList.remove('selected'));
+                icon.classList.add('selected');
+            });
+        });
+
+        document.querySelectorAll('.start-app').forEach(app => {
+            app.addEventListener('click', () => {
+                createWindow(app.dataset.app);
+                document.getElementById('startMenu').classList.remove('show');
+            });
+        });
+
+        document.getElementById('startButton').addEventListener('click', () => {
+            document.getElementById('startMenu').classList.toggle('show');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('#startMenu') && !e.target.closest('#startButton')) {
+                document.getElementById('startMenu').classList.remove('show');
+            }
+        });
+
+        document.getElementById('desktop').addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            const contextMenu = document.getElementById('contextMenu');
+            contextMenu.style.display = 'block';
+            contextMenu.style.left = e.clientX + 'px';
+            contextMenu.style.top = e.clientY + 'px';
+        });
+
+        let isSelecting = false;
+        let selectionStart = { x: 0, y: 0 };
+        const selectionBox = document.getElementById('selection-box');
+
+        document.getElementById('desktop').addEventListener('mousedown', (e) => {
+            if (e.target.closest('.desktop-icon')) return;
+            isSelecting = true;
+            selectionStart = { x: e.clientX, y: e.clientY };
+            selectionBox.style.left = e.clientX + 'px';
+            selectionBox.style.top = e.clientY + 'px';
+            selectionBox.style.width = '0px';
+            selectionBox.style.height = '0px';
+            selectionBox.style.display = 'block';
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isSelecting) return;
+            const currentX = e.clientX;
+            const currentY = e.clientY;
+            const left = Math.min(selectionStart.x, currentX);
+            const top = Math.min(selectionStart.y, currentY);
+            const width = Math.abs(currentX - selectionStart.x);
+            const height = Math.abs(currentY - selectionStart.y);
+            selectionBox.style.left = left + 'px';
+            selectionBox.style.top = top + 'px';
+            selectionBox.style.width = width + 'px';
+            selectionBox.style.height = height + 'px';
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (isSelecting) {
+                isSelecting = false;
+                setTimeout(() => {
+                    selectionBox.style.display = 'none';
+                }, 100);
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.context-menu')) {
+                document.getElementById('contextMenu').style.display = 'none';
+            }
+        });
+
+        document.querySelectorAll('.context-menu-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const action = item.dataset.action;
+                if (action === 'refresh') {
+                    document.querySelectorAll('.desktop-icon').forEach(icon => {
+                        icon.classList.add('refreshing');
+                        setTimeout(() => icon.classList.remove('refreshing'), 300);
+                    });
+                } else if (action === 'display-settings' || action === 'personalize') {
+                    createWindow('settings');
+                }
+                document.getElementById('contextMenu').style.display = 'none';
+            });
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.getElementById('startMenu').classList.remove('show');
+                document.getElementById('contextMenu').style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
