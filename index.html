@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>喜PCOS1.0.5</title>
+    <title>喜PCOS1.1.0</title>
     <style>
         * {
             margin: 0;
@@ -1295,32 +1295,6 @@
             border-color: var(--accent-color, #3b82f6);
         }
 
-        .datetime-picker-container {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-top: 16px;
-        }
-
-        .datetime-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .datetime-row label {
-            color: var(--text-secondary);
-            font-size: 14px;
-        }
-
-        .datetime-input {
-            width: 100px;
-        }
-
-        .datetime-select {
-            width: 120px;
-        }
-
         .office-container {
             display: flex;
             flex-direction: column;
@@ -1380,6 +1354,155 @@
 
         .office-text p {
             margin-bottom: 16px;
+        }
+
+        .office-welcome {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            background: transparent;
+            padding: 40px;
+            backdrop-filter: blur(30px) saturate(180%) brightness(1.1);
+            -webkit-backdrop-filter: blur(30px) saturate(180%) brightness(1.1);
+        }
+
+        .office-welcome-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .office-welcome-header h1 {
+            font-size: 42px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 12px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .office-welcome-header p {
+            font-size: 18px;
+            color: #a0aec0;
+        }
+
+        .office-apps-grid {
+            display: flex;
+            gap: 40px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .office-app-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 200px;
+            height: 220px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .office-app-card:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .office-app-icon {
+            margin-bottom: 20px;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+        }
+
+        .office-app-name {
+            font-size: 22px;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+
+        .office-app-desc {
+            font-size: 14px;
+            color: #a0aec0;
+        }
+
+        .ppt-icon {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+            border-radius: 16px;
+            padding: 12px;
+        }
+
+        .word-icon {
+            background: linear-gradient(135deg, #4a90d9, #3b7cc9);
+            border-radius: 16px;
+            padding: 12px;
+        }
+
+        .excel-icon {
+            background: linear-gradient(135deg, #27ae60, #1e9c52);
+            border-radius: 16px;
+            padding: 12px;
+        }
+
+        .office-app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            background: #1a1a1a;
+        }
+
+        .office-app-content {
+            flex: 1;
+            padding: 40px;
+            overflow: auto;
+            background: #1a1a1a;
+        }
+
+        .office-app-content h2 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+
+        .office-app-content p {
+            color: #a0aec0;
+            font-size: 16px;
+        }
+
+        .excel-content {
+            padding: 20px;
+        }
+
+        .excel-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            color: #000;
+        }
+
+        .excel-table th,
+        .excel-table td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            min-width: 100px;
+            height: 30px;
+        }
+
+        .excel-table th {
+            background: #e0e0e0;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .excel-table td:focus {
+            outline: 2px solid #217346;
+            outline-offset: -2px;
         }
 
         .start-menu {
@@ -1583,6 +1706,27 @@
             <rect x="10" y="19" width="20" height="3" rx="1" fill="#fca5a5"/>
             <rect x="10" y="24" width="14" height="3" rx="1" fill="#fca5a5"/>
             <rect x="10" y="29" width="10" height="3" rx="1" fill="#fca5a5"/>
+        </symbol>
+        <symbol id="svg-ppt" viewBox="0 0 40 40">
+            <rect x="6" y="4" width="28" height="32" rx="4" fill="#dc2626"/>
+            <rect x="10" y="10" width="20" height="14" rx="2" fill="white"/>
+            <polygon points="20,30 28,34 20,34" fill="#dc2626"/>
+        </symbol>
+        <symbol id="svg-word" viewBox="0 0 40 40">
+            <rect x="6" y="4" width="28" height="32" rx="4" fill="#2b579a"/>
+            <text x="20" y="28" text-anchor="middle" fill="white" font-size="16" font-weight="bold">W</text>
+        </symbol>
+        <symbol id="svg-excel" viewBox="0 0 40 40">
+            <rect x="6" y="4" width="28" height="32" rx="4" fill="#217346"/>
+            <rect x="10" y="10" width="6" height="5" rx="1" fill="white"/>
+            <rect x="18" y="10" width="6" height="5" rx="1" fill="white"/>
+            <rect x="26" y="10" width="6" height="5" rx="1" fill="white"/>
+            <rect x="10" y="17" width="6" height="5" rx="1" fill="white"/>
+            <rect x="18" y="17" width="6" height="5" rx="1" fill="white"/>
+            <rect x="26" y="17" width="6" height="5" rx="1" fill="white"/>
+            <rect x="10" y="24" width="6" height="5" rx="1" fill="white"/>
+            <rect x="18" y="24" width="6" height="5" rx="1" fill="white"/>
+            <rect x="26" y="24" width="6" height="5" rx="1" fill="white"/>
         </symbol>
         <symbol id="svg-windows" viewBox="0 0 40 40">
             <rect x="4" y="4" width="15" height="15" rx="3" fill="#0078d4"/>
@@ -1821,6 +1965,27 @@
                 width: 950,
                 height: 700,
                 content: 'office'
+            },
+            'ppt': {
+                title: '喜演示',
+                icon: 'ppt',
+                width: 1000,
+                height: 700,
+                content: 'ppt'
+            },
+            'word': {
+                title: '喜文档',
+                icon: 'word',
+                width: 900,
+                height: 650,
+                content: 'word'
+            },
+            'excel': {
+                title: '喜表格',
+                icon: 'excel',
+                width: 1000,
+                height: 700,
+                content: 'excel'
             }
         };
 
@@ -1831,137 +1996,21 @@
         let resizeState = null;
         let isLocked = true;
 
-        const timeSettings = {
-            autoTime: true,
-            timezone: 'Asia/Shanghai',
-            year: 2024,
-            month: 1,
-            day: 1,
-            hour: 12,
-            minute: 0,
-            use12Hour: false
-        };
-
-        function getTimezoneOffset(timezone) {
-            const offsets = {
-                'Asia/Shanghai': 8,
-                'Asia/Tokyo': 9,
-                'America/New_York': -5,
-                'UTC': 0
-            };
-            return offsets[timezone] || 8;
-        }
-
-        function fetchNetworkTime() {
-            const timezoneMap = {
-                'Asia/Shanghai': 'Asia/Shanghai',
-                'Asia/Tokyo': 'Asia/Tokyo',
-                'America/New_York': 'America/New_York',
-                'UTC': 'Etc/UTC'
-            };
-            const tz = timezoneMap[timeSettings.timezone] || 'Asia/Shanghai';
-            
-            fetch('https://worldtimeapi.org/api/timezone/' + tz)
-                .then(response => response.json())
-                .then(data => {
-                    const serverTime = new Date(data.datetime);
-                    timeSettings.year = serverTime.getFullYear();
-                    timeSettings.month = serverTime.getMonth() + 1;
-                    timeSettings.day = serverTime.getDate();
-                    timeSettings.hour = serverTime.getHours();
-                    timeSettings.minute = serverTime.getMinutes();
-                    updateTimeDisplay();
-                })
-                .catch(err => {
-                    console.log('Failed to fetch network time, using local time');
-                    const now = new Date();
-                    const offset = getTimezoneOffset(timeSettings.timezone);
-                    now.setHours(now.getUTCHours() + offset);
-                    timeSettings.year = now.getFullYear();
-                    timeSettings.month = now.getMonth() + 1;
-                    timeSettings.day = now.getDate();
-                    timeSettings.hour = now.getHours();
-                    timeSettings.minute = now.getMinutes();
-                    updateTimeDisplay();
-                });
-        }
-
-        function updateTimeDisplay() {
-            let displayDate;
-            
-            if (timeSettings.autoTime) {
-                displayDate = new Date();
-                const offset = getTimezoneOffset(timeSettings.timezone);
-                displayDate.setHours(displayDate.getUTCHours() + offset);
-            } else {
-                displayDate = new Date(
-                    timeSettings.year,
-                    timeSettings.month - 1,
-                    timeSettings.day,
-                    timeSettings.hour,
-                    timeSettings.minute
-                );
-                const offset = getTimezoneOffset(timeSettings.timezone);
-                displayDate.setHours(displayDate.getHours() + offset);
-            }
-            
-            let timeStr;
-            if (timeSettings.use12Hour) {
-                const hours = displayDate.getHours();
-                const minutes = displayDate.getMinutes();
-                const ampm = hours >= 12 ? '下午' : '上午';
-                const displayHours = hours % 12 || 12;
-                timeStr = `${ampm} ${displayHours}:${minutes.toString().padStart(2, '0')}`;
-            } else {
-                timeStr = displayDate.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false });
-            }
-            
-            const dateStr = displayDate.toLocaleDateString('zh-CN', { year: 'numeric', month: 'numeric', day: 'numeric' });
-            
-            const timeEl = document.getElementById('time');
-            const dateEl = document.getElementById('date');
-            const lockTimeEl = document.getElementById('lockTime');
-            const lockDateEl = document.getElementById('lockDate');
-            
-            if (timeEl) timeEl.textContent = timeStr;
-            if (dateEl) dateEl.textContent = dateStr;
-            if (lockTimeEl) lockTimeEl.textContent = timeStr;
-            if (lockDateEl) lockDateEl.textContent = dateStr;
+        function openApp(appId) {
+            createWindow(appId);
         }
 
         function updateClock() {
-            if (timeSettings.autoTime) {
-                const now = new Date();
-                const offset = getTimezoneOffset(timeSettings.timezone);
-                now.setHours(now.getUTCHours() + offset);
-                
-                let timeStr;
-                if (timeSettings.use12Hour) {
-                    const hours = now.getHours();
-                    const minutes = now.getMinutes();
-                    const ampm = hours >= 12 ? '下午' : '上午';
-                    const displayHours = hours % 12 || 12;
-                    timeStr = `${ampm} ${displayHours}:${minutes.toString().padStart(2, '0')}`;
-                } else {
-                    timeStr = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false });
-                }
-                
-                const dateStr = now.toLocaleDateString('zh-CN', { year: 'numeric', month: 'numeric', day: 'numeric' });
-                
-                const timeEl = document.getElementById('time');
-                const dateEl = document.getElementById('date');
-                const lockTimeEl = document.getElementById('lockTime');
-                const lockDateEl = document.getElementById('lockDate');
-                
-                if (timeEl) timeEl.textContent = timeStr;
-                if (dateEl) dateEl.textContent = dateStr;
-                if (lockTimeEl) lockTimeEl.textContent = timeStr;
-                if (lockDateEl) lockDateEl.textContent = dateStr;
-            } else {
-                updateTimeDisplay();
+            const now = new Date();
+            document.getElementById('time').textContent = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('date').textContent = now.toLocaleDateString('zh-CN', { year: 'numeric', month: 'numeric', day: 'numeric' });
+            
+            if (document.getElementById('lockTime')) {
+                document.getElementById('lockTime').textContent = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+                document.getElementById('lockDate').textContent = now.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' });
             }
         }
-
+        
         function unlockScreen() {
             if (!isLocked) return;
             isLocked = false;
@@ -1980,7 +2029,6 @@
         });
         
         updateClock();
-        fetchNetworkTime();
         setInterval(updateClock, 1000);
 
         function createWindow(appId) {
@@ -2447,34 +2495,39 @@
                         }
                     };
                     
-                    function getDateTimeItems() {
-                        if (timeSettings.autoTime) {
-                            return [
-                                { type: 'toggle', id: 'autoTime', title: '自动设置时间', desc: '自动从网络获取时间', value: timeSettings.autoTime },
-                                { type: 'select', id: 'timezone', title: '时区', desc: '选择时区', options: [
-                                    { value: 'Asia/Shanghai', label: '中国 (北京)' },
-                                    { value: 'Asia/Tokyo', label: '日本 (东京)' },
-                                    { value: 'America/New_York', label: '美国 (纽约)' },
-                                    { value: 'UTC', label: 'UTC' }
-                                ], value: timeSettings.timezone },
-                                { type: 'select', id: 'use12Hour', title: '时间格式', desc: '选择时间显示格式', options: [
-                                    { value: 'false', label: '24小时制' },
-                                    { value: 'true', label: '12小时制 (上午/下午)' }
-                                ], value: String(timeSettings.use12Hour) }
-                            ];
-                        } else {
-                            return [
-                                { type: 'toggle', id: 'autoTime', title: '自动设置时间', desc: '自动从网络获取时间', value: timeSettings.autoTime },
-                                { type: 'datetime-picker', id: 'manualDateTime', title: '手动设置时间', desc: '设置日期和时间', value: '' }
-                            ];
-                        }
-                    }
+                    const timeSettings = {
+                        autoTime: true,
+                        timezone: 'UTC+8',
+                        year: 2024,
+                        month: 1,
+                        day: 1,
+                        hour: 12,
+                        minute: 0,
+                        use12Hour: false
+                    };
                     
                     const timeSubPages = {
                         'datetime': {
                             title: '日期和时间',
                             icon: 'svg-clock',
-                            getItems: getDateTimeItems
+                            items: [
+                                { type: 'toggle', id: 'autoTime', title: '自动设置时间', desc: '自动从网络获取时间', value: timeSettings.autoTime },
+                                { type: 'select', id: 'timezone', title: '时区', desc: '选择时区', options: [
+                                    { value: 'UTC+8', label: '中国标准时间 (UTC+8)' },
+                                    { value: 'UTC+9', label: '日本标准时间 (UTC+9)' },
+                                    { value: 'UTC-5', label: '美国东部时间 (UTC-5)' },
+                                    { value: 'UTC', label: '世界协调时间 (UTC)' }
+                                ], value: timeSettings.timezone },
+                                { type: 'select', id: 'use12Hour', title: '时间格式', desc: '选择12小时或24小时制', options: [
+                                    { value: 'false', label: '24小时制' },
+                                    { value: 'true', label: '12小时制 (上午/下午)' }
+                                ], value: String(timeSettings.use12Hour) },
+                                { type: 'number', id: 'year', title: '年份', desc: '设置年份', value: timeSettings.year, min: 2000, max: 2100 },
+                                { type: 'number', id: 'month', title: '月份', desc: '设置月份', value: timeSettings.month, min: 1, max: 12 },
+                                { type: 'number', id: 'day', title: '日期', desc: '设置日期', value: timeSettings.day, min: 1, max: 31 },
+                                { type: 'number', id: 'hour', title: '小时', desc: '设置小时', value: timeSettings.hour, min: 0, max: 23 },
+                                { type: 'number', id: 'minute', title: '分钟', desc: '设置分钟', value: timeSettings.minute, min: 0, max: 59 }
+                            ]
                         },
                         'language': {
                             title: '语言',
@@ -2642,10 +2695,9 @@
                         currentSubPage = subpageId;
                         const subPage = subPages[subpageId];
                         const mainEl = contentEl.querySelector('#settingsMain');
-                        const items = subPage.getItems ? subPage.getItems() : subPage.items;
                         
                         let itemsHtml = '';
-                        items.forEach((item, index) => {
+                        subPage.items.forEach((item, index) => {
                             if (item.type === 'slider') {
                                 itemsHtml += `
                                     <div class="settings-card">
@@ -2759,44 +2811,6 @@
                                         </div>
                                     </div>
                                 `;
-                            } else if (item.type === 'datetime-picker') {
-                                const daysInMonth = new Date(timeSettings.year, timeSettings.month, 0).getDate();
-                                itemsHtml += `
-                                    <div class="settings-card">
-                                        <div class="settings-card-title">${item.title}</div>
-                                        <div class="settings-card-desc">${item.desc}</div>
-                                        <div class="datetime-picker-container">
-                                            <div class="datetime-row">
-                                                <label>年份</label>
-                                                <input type="number" class="settings-number-input datetime-input" id="setting-year" min="2000" max="2100" value="${timeSettings.year}">
-                                            </div>
-                                            <div class="datetime-row">
-                                                <label>月份</label>
-                                                <select class="settings-select datetime-select" id="setting-month">
-                                                    ${[1,2,3,4,5,6,7,8,9,10,11,12].map(m => `<option value="${m}" ${m === timeSettings.month ? 'selected' : ''}>${m} 月</option>`).join('')}
-                                                </select>
-                                            </div>
-                                            <div class="datetime-row">
-                                                <label>日期</label>
-                                                <select class="settings-select datetime-select" id="setting-day">
-                                                    ${Array.from({length: daysInMonth}, (_, i) => i + 1).map(d => `<option value="${d}" ${d === timeSettings.day ? 'selected' : ''}>${d} 日</option>`).join('')}
-                                                </select>
-                                            </div>
-                                            <div class="datetime-row">
-                                                <label>小时</label>
-                                                <select class="settings-select datetime-select" id="setting-hour">
-                                                    ${Array.from({length: 24}, (_, i) => i).map(h => `<option value="${h}" ${h === timeSettings.hour ? 'selected' : ''}>${h.toString().padStart(2, '0')}</option>`).join('')}
-                                                </select>
-                                            </div>
-                                            <div class="datetime-row">
-                                                <label>分钟</label>
-                                                <select class="settings-select datetime-select" id="setting-minute">
-                                                    ${Array.from({length: 60}, (_, i) => i).map(m => `<option value="${m}" ${m === timeSettings.minute ? 'selected' : ''}>${m.toString().padStart(2, '0')}</option>`).join('')}
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                `;
                             } else if (item.type === 'wifi-networks') {
                                 if (systemSettings.wifiOn) {
                                     itemsHtml += '<div class="wifi-networks-section"><div class="wifi-networks-title">可用网络</div>';
@@ -2891,8 +2905,7 @@
                         mainEl.querySelectorAll('.toggle-switch').forEach(toggle => {
                             toggle.addEventListener('click', () => {
                                 const settingId = toggle.id.replace('setting-', '');
-                                const settingsObj = currentSettingsPage === 'time' ? timeSettings : systemSettings;
-                                settingsObj[settingId] = !settingsObj[settingId];
+                                systemSettings[settingId] = !systemSettings[settingId];
                                 toggle.classList.toggle('on');
                                 
                                 if (settingId === 'nightLight') {
@@ -2958,14 +2971,6 @@
                                         }
                                     }
                                 }
-                                
-                                if (settingId === 'autoTime' && currentSettingsPage === 'time') {
-                                    if (timeSettings.autoTime) {
-                                        fetchNetworkTime();
-                                    }
-                                    renderSubPage('datetime', 'forward', timeSubPages);
-                                    updateClock();
-                                }
                             });
                         });
                         
@@ -2986,9 +2991,6 @@
                                 }
                                 
                                 if (settingId === 'timezone' || settingId === 'use12Hour') {
-                                    if (settingId === 'use12Hour') {
-                                        timeSettings.use12Hour = e.target.value === 'true';
-                                    }
                                     updateTimeDisplay();
                                 }
                             });
@@ -3005,57 +3007,6 @@
                                     timeSettings[settingId] = newValue;
                                     updateTimeDisplay();
                                 }
-                            });
-                        });
-                        
-                        mainEl.querySelectorAll('.settings-number-input').forEach(input => {
-                            input.addEventListener('change', (e) => {
-                                const settingId = e.target.id.replace('setting-', '');
-                                const newValue = parseInt(e.target.value);
-                                const min = parseInt(e.target.min);
-                                const max = parseInt(e.target.max);
-                                
-                                if (newValue >= min && newValue <= max) {
-                                    timeSettings[settingId] = newValue;
-                                    
-                                    if (settingId === 'year' || settingId === 'month') {
-                                        const daysInMonth = new Date(timeSettings.year, timeSettings.month, 0).getDate();
-                                        const daySelect = document.getElementById('setting-day');
-                                        if (daySelect) {
-                                            let currentDay = timeSettings.day;
-                                            if (currentDay > daysInMonth) {
-                                                currentDay = daysInMonth;
-                                                timeSettings.day = currentDay;
-                                            }
-                                            daySelect.innerHTML = Array.from({length: daysInMonth}, (_, i) => i + 1)
-                                                .map(d => `<option value="${d}" ${d === currentDay ? 'selected' : ''}>${d} 日</option>`).join('');
-                                        }
-                                    }
-                                    updateTimeDisplay();
-                                }
-                            });
-                        });
-                        
-                        mainEl.querySelectorAll('.datetime-select').forEach(select => {
-                            select.addEventListener('change', (e) => {
-                                const settingId = e.target.id.replace('setting-', '');
-                                const newValue = parseInt(e.target.value);
-                                timeSettings[settingId] = newValue;
-                                
-                                if (settingId === 'month') {
-                                    const daysInMonth = new Date(timeSettings.year, timeSettings.month, 0).getDate();
-                                    const daySelect = document.getElementById('setting-day');
-                                    if (daySelect) {
-                                        let currentDay = timeSettings.day;
-                                        if (currentDay > daysInMonth) {
-                                            currentDay = daysInMonth;
-                                            timeSettings.day = currentDay;
-                                        }
-                                        daySelect.innerHTML = Array.from({length: daysInMonth}, (_, i) => i + 1)
-                                            .map(d => `<option value="${d}" ${d === currentDay ? 'selected' : ''}>${d} 日</option>`).join('');
-                                    }
-                                }
-                                updateTimeDisplay();
                             });
                         });
                         
@@ -3309,7 +3260,7 @@
                                     <svg width="80" height="80" viewBox="0 0 40 40"><use href="#svg-windows"/></svg>
                                 </div>
                                 <div class="about-title">喜PCOS</div>
-                                <div class="about-version">版本 1.0.5</div>
+                                <div class="about-version">版本 1.1.0</div>
                             </div>
                             <div class="about-section">
                                 <div class="about-section-title">设备信息</div>
@@ -3333,7 +3284,7 @@
                                 <div class="about-grid">
                                     <div class="about-item">
                                         <div class="about-item-label">系统版本</div>
-                                        <div class="about-item-value">喜PCOS 1.0.5</div>
+                                        <div class="about-item-value">喜PCOS 1.1.0</div>
                                     </div>
                                     <div class="about-item">
                                         <div class="about-item-label">系统类型</div>
@@ -3397,35 +3348,134 @@
 
                 case 'office':
                     contentEl.innerHTML = `
-                        <div class="office-container">
+                        <div class="office-welcome">
+                            <div class="office-welcome-header">
+                                <h1>欢迎使用 喜Office</h1>
+                                <p>选择您要使用的应用</p>
+                            </div>
+                            <div class="office-apps-grid">
+                                <div class="office-app-card" onclick="openApp('ppt')">
+                                    <div class="office-app-icon ppt-icon">
+                                        <svg viewBox="0 0 64 64" width="64" height="64">
+                                            <rect x="8" y="4" width="48" height="40" rx="4" fill="#d34e4e"/>
+                                            <rect x="16" y="12" width="32" height="24" rx="2" fill="#fff"/>
+                                            <polygon points="32,44 44,52 32,52" fill="#d34e4e"/>
+                                        </svg>
+                                    </div>
+                                    <span class="office-app-name">喜演示</span>
+                                    <span class="office-app-desc">制作演示文稿</span>
+                                </div>
+                                <div class="office-app-card" onclick="openApp('word')">
+                                    <div class="office-app-icon word-icon">
+                                        <svg viewBox="0 0 64 64" width="64" height="64">
+                                            <rect x="8" y="4" width="48" height="56" rx="4" fill="#2b579a"/>
+                                            <text x="32" y="42" text-anchor="middle" fill="white" font-size="24" font-weight="bold">W</text>
+                                        </svg>
+                                    </div>
+                                    <span class="office-app-name">喜文档</span>
+                                    <span class="office-app-desc">文字处理文档</span>
+                                </div>
+                                <div class="office-app-card" onclick="openApp('excel')">
+                                    <div class="office-app-icon excel-icon">
+                                        <svg viewBox="0 0 64 64" width="64" height="64">
+                                            <rect x="8" y="4" width="48" height="56" rx="4" fill="#217346"/>
+                                            <rect x="14" y="12" width="10" height="8" fill="#fff" rx="1"/>
+                                            <rect x="27" y="12" width="10" height="8" fill="#fff" rx="1"/>
+                                            <rect x="40" y="12" width="10" height="8" fill="#fff" rx="1"/>
+                                            <rect x="14" y="24" width="10" height="8" fill="#fff" rx="1"/>
+                                            <rect x="27" y="24" width="10" height="8" fill="#fff" rx="1"/>
+                                            <rect x="40" y="24" width="10" height="8" fill="#fff" rx="1"/>
+                                            <rect x="14" y="36" width="10" height="8" fill="#fff" rx="1"/>
+                                            <rect x="27" y="36" width="10" height="8" fill="#fff" rx="1"/>
+                                            <rect x="40" y="36" width="10" height="8" fill="#fff" rx="1"/>
+                                        </svg>
+                                    </div>
+                                    <span class="office-app-name">喜表格</span>
+                                    <span class="office-app-desc">电子表格制作</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    break;
+
+                case 'ppt':
+                    contentEl.innerHTML = `
+                        <div class="office-app-container">
                             <div class="office-toolbar">
                                 <button class="office-btn">📄 新建</button>
                                 <button class="office-btn">📂 打开</button>
                                 <button class="office-btn">💾 保存</button>
-                                <button class="office-btn">📋 复制</button>
-                                <button class="office-btn">📝 粘贴</button>
-                                <button class="office-btn">↩️ 撤销</button>
-                                <button class="office-btn">↪️ 重做</button>
+                            </div>
+                            <div class="office-app-content">
+                                <h2>喜演示 - 演示文稿</h2>
+                                <p>创建专业的演示文稿</p>
+                            </div>
+                        </div>
+                    `;
+                    break;
+
+                case 'word':
+                    contentEl.innerHTML = `
+                        <div class="office-app-container">
+                            <div class="office-toolbar">
+                                <button class="office-btn">📄 新建</button>
+                                <button class="office-btn">📂 打开</button>
+                                <button class="office-btn">💾 保存</button>
                                 <button class="office-btn" style="margin-left:auto">B</button>
                                 <button class="office-btn"><i>I</i></button>
                                 <button class="office-btn"><u>U</u></button>
                             </div>
-                            <div class="office-content">
+                            <div class="office-app-content">
                                 <div class="office-document">
-                                    <div class="office-title" contenteditable="true">欢迎使用喜office</div>
+                                    <div class="office-title" contenteditable="true">新建文档</div>
                                     <div class="office-text" contenteditable="true">
-                                        <p>喜office是由喜PCOS团队开发的办公套件，包含文字处理、表格制作、演示文稿等功能。</p>
-                                        <p>这是一个功能强大的办公软件，可以满足您日常办公的各种需求。</p>
-                                        <p><br></p>
-                                        <p><strong>主要功能：</strong></p>
-                                        <p>• 文字处理：创建和编辑文档</p>
-                                        <p>• 表格制作：制作电子表格和数据分析</p>
-                                        <p>• 演示文稿：制作专业的演示文稿</p>
-                                        <p>• 云端同步：支持多设备同步</p>
-                                        <p><br></p>
-                                        <p>开始使用喜office，让办公更高效！</p>
+                                        <p>在这里开始编辑您的文档...</p>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                    `;
+                    break;
+
+                case 'excel':
+                    contentEl.innerHTML = `
+                        <div class="office-app-container">
+                            <div class="office-toolbar">
+                                <button class="office-btn">📄 新建</button>
+                                <button class="office-btn">📂 打开</button>
+                                <button class="office-btn">💾 保存</button>
+                            </div>
+                            <div class="office-app-content excel-content">
+                                <table class="excel-table">
+                                    <tr>
+                                        <th></th>
+                                        <th>A</th>
+                                        <th>B</th>
+                                        <th>C</th>
+                                        <th>D</th>
+                                    </tr>
+                                    <tr>
+                                        <th>1</th>
+                                        <td contenteditable="true"></td>
+                                        <td contenteditable="true"></td>
+                                        <td contenteditable="true"></td>
+                                        <td contenteditable="true"></td>
+                                    </tr>
+                                    <tr>
+                                        <th>2</th>
+                                        <td contenteditable="true"></td>
+                                        <td contenteditable="true"></td>
+                                        <td contenteditable="true"></td>
+                                        <td contenteditable="true"></td>
+                                    </tr>
+                                    <tr>
+                                        <th>3</th>
+                                        <td contenteditable="true"></td>
+                                        <td contenteditable="true"></td>
+                                        <td contenteditable="true"></td>
+                                        <td contenteditable="true"></td>
+                                    </tr>
+                                </table>
                             </div>
                         </div>
                     `;
