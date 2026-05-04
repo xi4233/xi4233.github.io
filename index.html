@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>喜PCOS1.1.5</title>
+    <title>喜PCOS 1.2.0</title>
     <style>
         * {
             margin: 0;
@@ -1971,6 +1971,15 @@
             flex-shrink: 0;
         }
 
+        .music-item-album-pic {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            object-fit: cover;
+            margin-right: 14px;
+            flex-shrink: 0;
+        }
+
         .music-item-text {
             flex: 1;
             min-width: 0;
@@ -2502,25 +2511,45 @@
             currentPage: 1,
             perPage: 10,
             searchResults: [],
-            isPreloaded: false
+            isPreloaded: false,
+            savedSongTitle: '',
+            savedSongArtist: '',
+            savedCurrentTime: 0
         };
 
         function preloadMusicUrls() {
             if (musicAppData.isPreloaded) return;
             
-            fetch('https://api-music.cenguigui.cn/song/url?id=484311588,3377324867,27578910,2003841390,35566904,2124462309,3316857125,2657106104,3375593652,3325266889')
-                .then(function(res) { return res.json(); })
-                .then(function(data) {
-                    if (data.data) {
-                        data.data.forEach(function(item, index) {
-                            if (item.url && defaultSongs[index]) {
-                                defaultSongs[index].url = item.url;
-                            }
-                        });
-                    }
-                    musicAppData.isPreloaded = true;
-                })
-                .catch(function(e) { console.log('预加载失败', e); });
+            Promise.all([
+                fetch('https://api-music.cenguigui.cn/song/url?id=484311588,3377324867,1404797306,2003841390,35566904,2124462309,3316857125,2657106104,3375593652,3325266889'),
+                fetch('https://api-music.cenguigui.cn/song/detail?ids=484311588,3377324867,1404797306,2003841390,35566904,2124462309,3316857125,2657106104,3375593652,3325266889')
+            ])
+            .then(function(responses) {
+                return Promise.all(responses.map(function(res) { return res.json(); }));
+            })
+            .then(function(data) {
+                var urlData = data[0];
+                var detailData = data[1];
+                
+                if (urlData.data) {
+                    urlData.data.forEach(function(item, index) {
+                        if (item.url && defaultSongs[index]) {
+                            defaultSongs[index].url = item.url;
+                        }
+                    });
+                }
+                
+                if (detailData.songs) {
+                    detailData.songs.forEach(function(item, index) {
+                        if (item.al && item.al.picUrl && defaultSongs[index]) {
+                            defaultSongs[index].albumPic = item.al.picUrl;
+                        }
+                    });
+                }
+                
+                musicAppData.isPreloaded = true;
+            })
+            .catch(function(e) { console.log('预加载失败', e); });
         }
 
         if (document.readyState === 'loading') {
@@ -2529,20 +2558,20 @@
             preloadMusicUrls();
         }
 
+        var defaultSongIds = [484311588, 3377324867, 1404797306, 2003841390, 35566904, 2124462309, 3316857125, 2657106104, 3375593652, 3325266889];
+        
         var defaultSongs = [
-            { id: 1, title: "神经病之歌", artist: "洛天依/言和", url: "" },
-            { id: 2, title: "一瞬间", artist: "洛天依", url: "" },
-            { id: 3, title: "牵丝戏", artist: "言和", url: "" },
-            { id: 4, title: "普通DISCO", artist: "洛天依/言和", url: "" },
-            { id: 5, title: "桃花笑", artist: "言和/乐正绫", url: "" },
-            { id: 6, title: "大哉乾元", artist: "洛天依", url: "" },
-            { id: 7, title: "我的悲伤是水做的", artist: "洛天依", url: "" },
-            { id: 8, title: "东京不太热", artist: "洛天依", url: "" },
-            { id: 9, title: "晚风拂过山川", artist: "洛天依", url: "" },
-            { id: 10, title: "玉兰开花三月三", artist: "洛天依", url: "" }
+            { id: 1, title: "神经病之歌", artist: "洛天依/言和", url: "", albumPic: "https://p2.music.126.net/CMWWIl0TQwTmxF3Peyk0Gg==/18780758115978593.jpg" },
+            { id: 2, title: "一瞬间", artist: "洛天依", url: "", albumPic: "https://p1.music.126.net/pZQS5xtjpH6esPTHgANWgA==/109951173157648302.jpg" },
+            { id: 3, title: "权御天下", artist: "洛天依", url: "", albumPic: "https://p1.music.126.net/QAT0oEoKn6vphJJfEQk9CA==/109951164541031933.jpg" },
+            { id: 4, title: "普通DISCO", artist: "洛天依/言和", url: "", albumPic: "https://p1.music.126.net/fk9d2keRDcHKjyKtYPa4fQ==/109951168113572828.jpg" },
+            { id: 5, title: "桃花笑", artist: "言和/乐正绫", url: "", albumPic: "https://p1.music.126.net/vxgfa3lfZBHU0weqIbQvtg==/18364043207207915.jpg" },
+            { id: 6, title: "大哉乾元", artist: "洛天依", url: "", albumPic: "https://p1.music.126.net/pwTPHAcgNKkXRqctCBj8bA==/109951172369926129.jpg" },
+            { id: 7, title: "我的悲伤是水做的", artist: "洛天依", url: "", albumPic: "https://p1.music.126.net/KY9yuvYlsmJtJZC9ghzdfw==/109951172267819738.jpg" },
+            { id: 8, title: "东京不太热", artist: "洛天依", url: "", albumPic: "https://p1.music.126.net/uccVkm6DN_WZXxACcPNR7A==/109951170268133935.jpg" },
+            { id: 9, title: "晚风拂过山川", artist: "洛天依", url: "", albumPic: "https://p1.music.126.net/0fMNS4LVuYuudleBY6W3Vw==/109951173136058011.jpg" },
+            { id: 10, title: "玉兰开花三月三", artist: "洛天依", url: "", albumPic: "https://p1.music.126.net/VKyykN7jSgTDVyY33HOaHA==/109951172388353900.jpg" }
         ];
-
-        var defaultSongIds = [484311588, 3377324867, 27578910, 2003841390, 35566904, 2124462309, 3316857125, 2657106104, 3375593652, 3325266889];
 
         async function loadDefaultSongsUrl() {
             musicAppData.playlist = [];
@@ -2553,6 +2582,13 @@
             } else {
                 for (var i = 0; i < defaultSongs.length; i++) {
                     var song = defaultSongs[i];
+                    try {
+                        var picResponse = await fetch('https://api-music.cenguigui.cn/song/detail?ids=' + defaultSongIds[i]);
+                        var picData = await picResponse.json();
+                        if (picData.songs && picData.songs[0] && picData.songs[0].al && picData.songs[0].al.picUrl) {
+                            song.albumPic = picData.songs[0].al.picUrl;
+                        }
+                    } catch (e) {}
                     try {
                         var urlResponse = await fetch('https://api-music.cenguigui.cn/song/url?id=' + defaultSongIds[i]);
                         var urlData = await urlResponse.json();
@@ -2611,6 +2647,14 @@
                     var songsWithUrl = [];
                     for (var i = 0; i < Math.min(10, data.result.songs.length); i++) {
                         var song = data.result.songs[i];
+                        var albumPic = '';
+                        try {
+                            var detailResponse = await fetch('https://api-music.cenguigui.cn/song/detail?ids=' + song.id);
+                            var detailData = await detailResponse.json();
+                            if (detailData.songs && detailData.songs[0] && detailData.songs[0].al && detailData.songs[0].al.picUrl) {
+                                albumPic = detailData.songs[0].al.picUrl;
+                            }
+                        } catch (e) {}
                         try {
                             var urlResponse = await fetch('https://api-music.cenguigui.cn/song/url?id=' + song.id);
                             var urlData = await urlResponse.json();
@@ -2619,7 +2663,8 @@
                                     id: song.id,
                                     title: song.name,
                                     artist: song.artists[0] ? song.artists[0].name : '未知',
-                                    url: urlData.data[0].url
+                                    url: urlData.data[0].url,
+                                    albumPic: albumPic
                                 });
                             }
                         } catch (e) {}
@@ -2650,9 +2695,11 @@
         }
 
         function initMusicApp(container) {
-            musicAppData.currentIndex = 0;
-            musicAppData.isPlaying = false;
-            musicAppData.searchResults = [];
+            var savedIsPlaying = musicAppData.isPlaying;
+            var savedTime = musicAppData.savedCurrentTime;
+            var savedTitle = musicAppData.savedSongTitle;
+            var savedArtist = musicAppData.savedSongArtist;
+            var hasSavedSong = savedTitle && savedTitle !== '喜音乐' && savedTitle !== '点击播放';
 
             if (!musicAppData.audio) {
                 musicAppData.audio = new Audio();
@@ -2660,6 +2707,50 @@
 
             loadDefaultSongsUrl().then(function() {
                 renderMusicList();
+                
+                if (hasSavedSong && musicAppData.playlist.length > 0) {
+                    var matchingIndex = -1;
+                    for (var i = 0; i < musicAppData.playlist.length; i++) {
+                        if (musicAppData.playlist[i].title === savedTitle && musicAppData.playlist[i].artist === savedArtist) {
+                            matchingIndex = i;
+                            break;
+                        }
+                    }
+                    
+                    if (matchingIndex !== -1) {
+                        musicAppData.currentIndex = matchingIndex;
+                        var titleEl = document.getElementById('musicSongTitle');
+                        var artistEl = document.getElementById('musicSongArtist');
+                        var timeCurrentEl = document.getElementById('musicTimeCurrent');
+                        var progressFillEl = document.getElementById('musicProgressFill');
+                        var playBtn = document.getElementById('musicPlayBtn');
+                        
+                        if (titleEl) titleEl.textContent = musicAppData.playlist[matchingIndex].title;
+                        if (artistEl) artistEl.textContent = musicAppData.playlist[matchingIndex].artist;
+                        
+                        if (savedIsPlaying && musicAppData.playlist[matchingIndex].url) {
+                            if (timeCurrentEl) timeCurrentEl.textContent = formatTime(savedTime);
+                            if (progressFillEl) progressFillEl.style.width = '0%';
+                            
+                            var song = musicAppData.playlist[matchingIndex];
+                            if (musicAppData.audio.src !== song.url) {
+                                musicAppData.audio.src = song.url;
+                                musicAppData.audio.currentTime = savedTime;
+                            }
+                            if (playBtn) {
+                                playBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
+                            }
+                        } else {
+                            if (timeCurrentEl) timeCurrentEl.textContent = formatTime(savedTime);
+                            if (progressFillEl) progressFillEl.style.width = '0%';
+                            if (playBtn) {
+                                playBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+                            }
+                        }
+                        
+                        renderMusicList();
+                    }
+                }
             });
 
             var searchInput = document.getElementById('musicSearchInput');
@@ -2756,7 +2847,15 @@
                 var realIndex = start + i;
                 var item = document.createElement('div');
                 item.className = 'music-item-row' + (realIndex === musicAppData.currentIndex ? ' now-playing' : '');
-                item.innerHTML = '<div class="music-item-icon">🎵</div><div class="music-item-text"><div class="music-item-title">' + song.title + '</div><div class="music-item-artist">' + song.artist + '</div></div>';
+                
+                var iconHtml = '';
+                if (song.albumPic) {
+                    iconHtml = '<img class="music-item-album-pic" src="' + song.albumPic + '" alt="专辑">';
+                } else {
+                    iconHtml = '<div class="music-item-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg></div>';
+                }
+                
+                item.innerHTML = iconHtml + '<div class="music-item-text"><div class="music-item-title">' + song.title + '</div><div class="music-item-artist">' + song.artist + '</div></div>';
                 item.onclick = (function(idx) {
                     return function() { playMusic(idx); };
                 })(realIndex);
@@ -2785,11 +2884,21 @@
             musicAppData.currentIndex = index;
             var song = musicAppData.playlist[index];
 
+            musicAppData.savedSongTitle = song.title;
+            musicAppData.savedSongArtist = song.artist;
+
             var titleEl = document.getElementById('musicSongTitle');
             var artistEl = document.getElementById('musicSongArtist');
             var playBtn = document.getElementById('musicPlayBtn');
+            var coverEl = document.getElementById('musicCoverDisplay');
             if (titleEl) titleEl.textContent = "加载中...";
             if (artistEl) artistEl.textContent = song.artist;
+            
+            if (coverEl && song.albumPic) {
+                coverEl.innerHTML = '<img src="' + song.albumPic + '" style="width:100%;height:100%;border-radius:12px;object-fit:cover;">';
+            } else if (coverEl) {
+                coverEl.innerHTML = '<svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>';
+            }
 
             var timeoutId = setTimeout(function() {
                 if (titleEl && titleEl.textContent === "加载中...") {
@@ -2838,6 +2947,11 @@
                 if (playBtn) playBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
             }
             musicAppData.isPlaying = !musicAppData.isPlaying;
+            
+            if (musicAppData.playlist[musicAppData.currentIndex]) {
+                musicAppData.savedSongTitle = musicAppData.playlist[musicAppData.currentIndex].title;
+                musicAppData.savedSongArtist = musicAppData.playlist[musicAppData.currentIndex].artist;
+            }
         }
 
         function playNext() {
@@ -2858,6 +2972,8 @@
             var pct = (musicAppData.audio.currentTime / musicAppData.audio.duration) * 100;
             fillEl.style.width = pct + '%';
             currEl.textContent = formatTime(musicAppData.audio.currentTime);
+            
+            musicAppData.savedCurrentTime = musicAppData.audio.currentTime;
         }
 
         function formatTime(seconds) {
@@ -4468,7 +4584,7 @@
                                     <svg width="80" height="80" viewBox="0 0 40 40"><use href="#svg-windows"/></svg>
                                 </div>
                                 <div class="about-title">喜PCOS</div>
-                                <div class="about-version">版本 1.1.5</div>
+                                <div class="about-version">版本 1.2.0</div>
                             </div>
                             <div class="about-section">
                                 <div class="about-section-title">设备信息</div>
@@ -4492,7 +4608,7 @@
                                 <div class="about-grid">
                                     <div class="about-item">
                                         <div class="about-item-label">系统版本</div>
-                                        <div class="about-item-value">喜PCOS 1.1.5</div>
+                                        <div class="about-item-value">喜PCOS 1.2.0</div>
                                     </div>
                                     <div class="about-item">
                                         <div class="about-item-label">系统类型</div>
